@@ -351,6 +351,7 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 - SuperDARN community for radar data and infrastructure
 - NSF for funding support
 - HamSCI (Ham Radio Science Citizen Initiative)
+- Claude (Anthropic) for documentation and coding assistance
 
 ## Support
 
