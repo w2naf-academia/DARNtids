@@ -7,6 +7,24 @@ A Python package for detecting and characterizing Medium-Scale Traveling Ionosph
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+## Project History
+
+DARNtids was originally developed by **Dr. Nathaniel A. Frissell** to support the analysis published in:
+
+> Frissell, N. A., J. B. H. Baker, J. M. Ruohoniemi, R. A. Greenwald, A. J. Gerrard, E. S. Miller, and M. L. West (2016), Sources and characteristics of medium-scale traveling ionospheric disturbances observed by high-frequency radars in the North American sector, *J. Geophys. Res. Space Physics*, 121, doi:[10.1002/2015JA022168](https://doi.org/10.1002/2015JA022168).
+
+This foundational work used SuperDARN radar observations to study the relationship between MSTIDs and polar vortex dynamics, demonstrating that polar atmospheric processes, rather than space weather activity, are primarily responsible for controlling MSTID occurrence.
+
+The codebase has evolved through two major modernization efforts:
+
+**Python 3 Migration (2023)** - **Francis Hassan Tholley** updated the original Python 2 codebase to Python 3 and migrated from the deprecated DaViTpy library to the actively developed PyDARN library. This work drastically reduced analysis runtime and ensured compatibility with modern Python environments. This work was completed as part of his MS Software Engineering thesis:
+
+> Tholley, F. H. (2023), PyDARNMUSIC/PyDARNMUSICWeb: Software for SuperDARN Medium Scale Traveling Ionospheric Disturbance Visualization and Analysis, *MS Thesis, University of Scranton*, [https://archives.scranton.edu/digital/collection/p15111coll1/id/1403/rec/1](https://archives.scranton.edu/digital/collection/p15111coll1/id/1403/rec/1).
+
+**HDF5 Data Format Migration (2025)** - **Nicholas J. Guerra** replaced the legacy pickle file storage system with the HDF5 file format, addressing critical issues with portability, interoperability, testability, and maintainability. This migration provides hierarchical data organization, improved compression, cross-platform compatibility, and enhanced data security while following FAIR (Findable, Accessible, Interoperable, and Reusable) data principles. This work was completed as part of his MS Software Engineering thesis:
+
+> Guerra, N. J. (2025), Migrating From Legacy Pickle Files to HDF5 in PyDARN-MUSIC & DARNtids and Implementing a Comprehensive Testing Suite, *MS Thesis, University of Scranton*, [https://archives.scranton.edu/digital/collection/p15111coll1/id/1487/rec/2](https://archives.scranton.edu/digital/collection/p15111coll1/id/1487/rec/2).
+
 ## Overview
 
 DARNtids provides a complete pipeline for MSTID analysis including:
@@ -23,7 +41,11 @@ DARNtids provides a complete pipeline for MSTID analysis including:
 
 - **Automated Pipeline**: Process years of data across multiple radars with minimal manual intervention
 - **Quality Assurance**: Built-in data quality checks including radar uptime, data coverage, and daylight fraction
-- **HDF5 Storage**: Efficient data persistence with HDF5 format
+- **HDF5 Storage**: Modern, efficient data persistence using HDF5 format following FAIR data principles
+  - Hierarchical organization for complex SuperDARN datasets
+  - Cross-platform portability and language interoperability
+  - Efficient compression and fast I/O performance
+  - Self-describing metadata for enhanced reproducibility
 - **Parallel Processing**: Multi-process support for high-throughput analysis
 - **Flexible Configuration**: JSON parameter files for reproducible analysis
 - **Web Interface**: Tools for manual event review and classification (in `webserver/`)
@@ -216,14 +238,48 @@ pip install -e .[dev]
 
 ## Citation
 
-If you use DARNtids in your research, please cite:
+If you use DARNtids in your research, please cite the original paper and software:
 
+**Original Research:**
+```bibtex
+@article{frissell2016sources,
+  author = {Frissell, N. A. and Baker, J. B. H. and Ruohoniemi, J. M. and Greenwald, R. A. and Gerrard, A. J. and Miller, E. S. and West, M. L.},
+  title = {Sources and characteristics of medium-scale traveling ionospheric disturbances observed by high-frequency radars in the North American sector},
+  journal = {Journal of Geophysical Research: Space Physics},
+  volume = {121},
+  year = {2016},
+  doi = {10.1002/2015JA022168}
+}
+```
+
+**Software:**
 ```bibtex
 @software{darntids,
-  author = {Frissell, Nathaniel A.},
+  author = {Frissell, Nathaniel A. and Tholley, Francis Hassan and Guerra, Nicholas J.},
   title = {DARNtids: SuperDARN Traveling Ionospheric Disturbance Analysis Toolkit},
   url = {https://github.com/w2naf/DARNtids},
   year = {2025}
+}
+```
+
+**Related Theses:**
+```bibtex
+@mastersthesis{tholley2023pydarnmusic,
+  author = {Tholley, Francis Hassan},
+  title = {PyDARNMUSIC/PyDARNMUSICWeb: Software for SuperDARN Medium Scale Traveling Ionospheric Disturbance Visualization and Analysis},
+  school = {University of Scranton},
+  year = {2023},
+  type = {MS Thesis},
+  url = {https://archives.scranton.edu/digital/collection/p15111coll1/id/1403/rec/1}
+}
+
+@mastersthesis{guerra2025hdf5,
+  author = {Guerra, Nicholas J.},
+  title = {Migrating From Legacy Pickle Files to HDF5 in PyDARN-MUSIC \& DARNtids and Implementing a Comprehensive Testing Suite},
+  school = {University of Scranton},
+  year = {2025},
+  type = {MS Thesis},
+  url = {https://archives.scranton.edu/digital/collection/p15111coll1/id/1487/rec/2}
 }
 ```
 
@@ -231,14 +287,23 @@ If you use DARNtids in your research, please cite:
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
 
-## Authors
+## Authors and Contributors
 
-**Nathaniel A. Frissell**
-- Email: nathaniel.frissell@scranton.edu
-- Website: https://hamsci.org
+**Principal Investigator:**
+- **Nathaniel A. Frissell, PhD** - Original developer, project lead
+  - Email: nathaniel.frissell@scranton.edu
+  - Website: https://hamsci.org
 
-### Contributors
-- Nicholas Guerra (HDF5 API implementation)
+**Major Contributors:**
+- **Francis Hassan Tholley, MS** - Python 3 migration and PyDARN library integration (2023)
+  - Reimplemented MUSIC algorithm for Python 3 compatibility
+  - Migrated from deprecated DaViTpy to PyDARN library
+  - Developed PyDARNMUSICWeb interface
+
+- **Nicholas J. Guerra, MS** - HDF5 data format migration and testing framework (2025)
+  - Replaced pickle file storage with HDF5 format
+  - Implemented FAIR data principles
+  - Developed comprehensive testing suite
 
 ## Acknowledgments
 
