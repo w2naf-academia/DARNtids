@@ -283,6 +283,42 @@ If you use DARNtids in your research, please cite the original paper and softwar
 }
 ```
 
+**Example Science Applications:**
+
+The following works demonstrate scientific applications of DARNtids:
+
+```bibtex
+@article{frissell2016sources,
+  author = {Frissell, N. A. and Baker, J. B. H. and Ruohoniemi, J. M. and Greenwald, R. A. and Gerrard, A. J. and Miller, E. S. and West, M. L.},
+  title = {Sources and characteristics of medium-scale traveling ionospheric disturbances observed by high-frequency radars in the North American sector},
+  journal = {Journal of Geophysical Research: Space Physics},
+  volume = {121},
+  year = {2016},
+  doi = {10.1002/2015JA022168},
+  note = {Original DARNtids application studying MSTID correlation with polar vortex dynamics}
+}
+
+@bachelorsthesis{fox2025interhemispheric,
+  author = {Fox, James P.},
+  title = {Interhemispheric Comparison of the MSTID Response to Sudden Stratospheric Warmings Observed by SuperDARN Radars},
+  school = {University of Scranton},
+  year = {2025},
+  type = {Magis Honors Thesis in STEM},
+  url = {https://archives.scranton.edu/digital/collection/p15111coll1/id/1515/rec/4},
+  note = {Extended DARNtids for Southern Hemisphere analysis of SSW events}
+}
+
+@bachelorsthesis{molzen2025investigation,
+  author = {Molzen, Michael},
+  title = {Investigation of North American SuperDARN Observations of Medium-Scale Traveling Ionospheric Disturbances During January 2016},
+  school = {University of Scranton},
+  year = {2025},
+  type = {BS Thesis in Physics},
+  url = {https://archives.scranton.edu/digital/collection/p15111coll1/id/1530/rec/5},
+  note = {Used DARNtids for continental-scale multi-radar MSTID analysis}
+}
+```
+
 ## License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
@@ -304,6 +340,11 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
   - Replaced pickle file storage with HDF5 format
   - Implemented FAIR data principles
   - Developed comprehensive testing suite
+
+**Additional Contributors:**
+- **James P. Fox, BS** - HDF5 implementation testing and validation (2025)
+  - Collaborated with Guerra to test and validate HDF5 implementation
+  - Adapted DARNtids for Southern Hemisphere SuperDARN data analysis
 
 ## Acknowledgments
 
