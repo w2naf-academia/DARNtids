@@ -22,6 +22,5 @@ dependencies = [
 [project.urls]
 Homepage = "https://hamsci.org"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["mstid*"]
+[tool.setuptools]
+packages = ["mstid"]
