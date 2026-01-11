@@ -68,7 +68,7 @@ DARNtids uses the MUSIC algorithm to decompose radar backscatter into wavenumber
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/w2naf/DARNtids.git
+git clone https://github.com/w2naf-academia/DARNtids.git
 cd DARNtids
 ```
 
@@ -87,7 +87,7 @@ pip install -e .
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/w2naf/DARNtids.git
+git clone https://github.com/w2naf-academia/DARNtids.git
 cd DARNtids
 ```
 
@@ -181,7 +181,7 @@ DARNtids/
 - bks (Blackstone)
 - wal (Wallops)
 - fhw, fhe (Fort Hays - West/East)
-- cvw, cve (Clyde River - West/East)
+- cvw, cve (Christmas Valley - West/East)
 
 **High Latitude:**
 - kap (Kapuskasing)
@@ -229,7 +229,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ### Development Setup
 
 ```bash
-git clone https://github.com/w2naf/DARNtids.git
+git clone https://github.com/w2naf-academia/DARNtids.git
 cd DARNtids
 conda env create -f environment.yml
 conda activate mstid
@@ -257,7 +257,7 @@ If you use DARNtids in your research, please cite the original paper and softwar
 @software{darntids,
   author = {Frissell, Nathaniel A. and Tholley, Francis Hassan and Guerra, Nicholas J.},
   title = {DARNtids: SuperDARN Traveling Ionospheric Disturbance Analysis Toolkit},
-  url = {https://github.com/w2naf/DARNtids},
+  url = {https://github.com/w2naf-academia/DARNtids},
   year = {2025}
 }
 ```
@@ -285,7 +285,7 @@ If you use DARNtids in your research, please cite the original paper and softwar
 
 **Example Science Applications:**
 
-The following works demonstrate scientific applications of DARNtids:
+The following works demonstrate scientific applications of DARNtids. For the foundational work that motivated the development of DARNtids, see the "Original Research" citation above.
 
 ```bibtex
 @article{frissell2016sources,
@@ -295,7 +295,7 @@ The following works demonstrate scientific applications of DARNtids:
   volume = {121},
   year = {2016},
   doi = {10.1002/2015JA022168},
-  note = {Original DARNtids application studying MSTID correlation with polar vortex dynamics}
+  note = {Foundational work that motivated DARNtids development; studied MSTID correlation with polar vortex dynamics using 3 years of multi-radar observations}
 }
 
 @bachelorsthesis{fox2025interhemispheric,
@@ -366,8 +366,8 @@ This work has been supported by the following grants:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/w2naf/DARNtids/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/w2naf/DARNtids/discussions)
+- **Issues**: [GitHub Issues](https://github.com/w2naf-academia/DARNtids/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/w2naf-academia/DARNtids/discussions)
 - **Email**: nathaniel.frissell@scranton.edu
 
 ## Related Projects
