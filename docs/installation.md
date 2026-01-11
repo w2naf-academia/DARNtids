@@ -62,7 +62,7 @@ conda install -c conda-forge mamba
 #### Step 2: Clone Repository
 
 ```bash
-git clone https://github.com/w2naf/DARNtids.git
+git clone https://github.com/w2naf-academia/DARNtids.git
 cd DARNtids
 ```
 
@@ -107,7 +107,7 @@ For users who prefer pip-only installation.
 #### Step 1: Clone Repository
 
 ```bash
-git clone https://github.com/w2naf/DARNtids.git
+git clone https://github.com/w2naf-academia/DARNtids.git
 cd DARNtids
 ```
 
@@ -146,7 +146,7 @@ For contributors who need additional development tools.
 
 ```bash
 # Clone and navigate
-git clone https://github.com/w2naf/DARNtids.git
+git clone https://github.com/w2naf-academia/DARNtids.git
 cd DARNtids
 
 # Create environment
@@ -404,8 +404,8 @@ chmod 755 mstid_data/test
 If you encounter issues:
 
 1. **Check Documentation**: Review [README.md](../README.md) and other docs
-2. **Search Issues**: Check [GitHub Issues](https://github.com/w2naf/DARNtids/issues)
-3. **Ask Questions**: Post in [GitHub Discussions](https://github.com/w2naf/DARNtids/discussions)
+2. **Search Issues**: Check [GitHub Issues](https://github.com/w2naf-academia/DARNtids/issues)
+3. **Ask Questions**: Post in [GitHub Discussions](https://github.com/w2naf-academia/DARNtids/discussions)
 4. **Email Support**: nathaniel.frissell@scranton.edu
 
 When reporting issues, include:

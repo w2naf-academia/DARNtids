@@ -373,5 +373,5 @@ This work has been supported by the following grants:
 ## Related Projects
 
 - [pydarn](https://github.com/SuperDARN/pydarn) - Python library for SuperDARN data
-- [pyDARNmusic](https://github.com/w2naf/pyDARNmusic) - MUSIC algorithm implementation
+- [pyDARNmusic](https://github.com/w2naf-academia/pyDARNmusic) - MUSIC algorithm implementation
 - [SuperDARN](http://vt.superdarn.org/) - Global radar network

@@ -69,7 +69,7 @@ DARNtids/
 
 ### 1. Choose an Issue
 
-- Check [GitHub Issues](https://github.com/w2naf/DARNtids/issues)
+- Check [GitHub Issues](https://github.com/w2naf-academia/DARNtids/issues)
 - Comment on the issue you want to work on
 - Ask questions if anything is unclear
 
