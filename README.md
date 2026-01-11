@@ -348,8 +348,19 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 ## Acknowledgments
 
+### Funding Support
+
+This work has been supported by the following grants:
+- NASA Grant 80NSSC21K0002
+- NASA Grant 80NSSC23K0848
+- NSF Grant AGS-0838219
+- NSF Grant AGS-1341885
+- NSF Grant AGS-1341918
+- NSF Grant AGS-2045755
+
+### Community and Infrastructure
+
 - SuperDARN community for radar data and infrastructure
-- NSF for funding support
 - HamSCI (Ham Radio Science Citizen Initiative)
 - Claude (Anthropic) for documentation and coding assistance
 
