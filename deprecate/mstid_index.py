@@ -11,9 +11,9 @@ import multiprocessing
 import matplotlib
 matplotlib.use('Agg')
 
-import mstid
-from mstid import run_helper
-from mstid import prepare_output_dirs
+import darntids
+from darntids import run_helper
+from darntids import prepare_output_dirs
 
 # User-Defined Run Parameters Go Here. #########################################
 radars = []
@@ -31,7 +31,7 @@ radars.append('gbr')
 
 db_name                     = 'mstid'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
-#tunnel,mongo_port           = mstid.createTunnel() 
+#tunnel,mongo_port           = darntids.createTunnel() 
 
 dct                         = {}
 dct['radars']               = radars
@@ -59,16 +59,16 @@ output_dir          = os.path.join('output','driver_timeseries')
 prepare_output_dirs({0:output_dir},clear_output_dirs=True)
 
 db_name             = 'mstid'
-#tunnel,mongo_port   = mstid.createTunnel()
+#tunnel,mongo_port   = darntids.createTunnel()
 
 # For MSTID amplitude plotting.
-all_years           = mstid.run_helper.create_default_radar_groups_all_years()
+all_years           = darntids.run_helper.create_default_radar_groups_all_years()
 
 # For MSTID Direction Plotting.
 mstid_list_format   = 'music_guc_{radar}_{sDate}_{eDate}'
-music_groups        = mstid.run_helper.create_default_radar_groups_all_years(mstid_format=mstid_list_format)
+music_groups        = darntids.run_helper.create_default_radar_groups_all_years(mstid_format=mstid_list_format)
 
-mstid_reduced_inx = mstid.calculate_reduced_mstid_index(all_years,
+mstid_reduced_inx = darntids.calculate_reduced_mstid_index(all_years,
         reduction_type='mean',daily_vals=True, db_name=db_name)
 
 drivers = []
@@ -124,7 +124,7 @@ for driver_dct in drivers:
             tmp['eDate']                = eDate
 
 
-            png_path    = mstid.calendar_plot_lib.plot_mstid_index(paper_legend=True,plot_letters=True,
+            png_path    = darntids.calendar_plot_lib.plot_mstid_index(paper_legend=True,plot_letters=True,
                                                     file_suffix='_'+file_suffix,dct_list=dct_list,**tmp)
             print(png_path)
 

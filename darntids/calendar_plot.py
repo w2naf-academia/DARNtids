@@ -207,7 +207,7 @@ def plot_calendar_panel(dct_list,sDate,eDate,scale,st_uts,val_key,ax,
 
     if classification_colors:
         # Use colorscheme that matches MSTID Index in classification plots.
-        from mstid.classify import MyColors
+        from darntids.classify import MyColors
         scale_0             = -0.025
         scale_1             =  0.025
         my_cmap             = 'seismic'

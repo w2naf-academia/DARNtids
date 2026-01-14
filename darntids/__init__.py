@@ -1,3 +1,5 @@
+__version__ = "0.1.0"
+
 from . import general_lib
 from .general_lib import prepare_output_dirs
 

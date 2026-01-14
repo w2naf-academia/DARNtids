@@ -22,8 +22,8 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 
-import mstid
-from mstid import run_helper
+import darntids
+from darntids import run_helper
 
 from hdf5_api import loadMusicArrayFromHDF5
 
@@ -121,10 +121,10 @@ st_bin      = 18    # UTC bin start time
 plot_events = True  # If True, plot each event's raw and gridded data.
 
 output_dir = os.path.join('output','summary_rtp',db_name)
-mstid.general_lib.prepare_output_dirs({0:output_dir},clear_output_dirs=False)
+darntids.general_lib.prepare_output_dirs({0:output_dir},clear_output_dirs=False)
 for radar in radars:
     radar_output_dir = os.path.join(output_dir,radar)
-    mstid.general_lib.prepare_output_dirs({0:radar_output_dir},clear_output_dirs=False)
+    darntids.general_lib.prepare_output_dirs({0:radar_output_dir},clear_output_dirs=False)
 
 # Define time and range grid for individual radar windows.
 win_time_0_mn  = 0
@@ -176,7 +176,7 @@ for radar in radars:
             # Get events from MongoDB
             # Note that recompute=True does not actually recompute or change anything in the database.
             # It merely prevents the function from filtering out events that are already processed.
-            events = mstid.mongo_tools.events_from_mongo(**dct_list_item,process_level='rti_interp',recompute=True)
+            events = darntids.mongo_tools.events_from_mongo(**dct_list_item,process_level='rti_interp',recompute=True)
 
             # Keep only events that are matching the requested st_bin.
             for event in events:
@@ -217,7 +217,7 @@ for radar, radar_summary in summary.items():
             sTime = event['sTime']
             eTime = event['eTime']
             # Get HDF file for event.
-            hdf_file = mstid.more_music.get_hdf5_name(event['radar'],sTime,eTime,data_path=data_path,getPath=True)
+            hdf_file = darntids.more_music.get_hdf5_name(event['radar'],sTime,eTime,data_path=data_path,getPath=True)
             event_name = os.path.splitext(os.path.basename(hdf_file))[0]
 
             print(f"--> Processing event {event_name}")

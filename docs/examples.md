@@ -18,7 +18,7 @@ This document provides practical examples for common use cases.
 ### Example 1: Process One Month of Data
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Configuration
@@ -34,10 +34,10 @@ params = {
 }
 
 # Create run list
-dct_list = mstid.run_helper.create_music_run_list(**params)
+dct_list = darntids.run_helper.create_music_run_list(**params)
 
 # Process through RTI interpolation
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='rti_interp',
     new_list=True,
@@ -51,7 +51,7 @@ print("Processing complete! Check data/june2015/mstid_index/ for results.")
 ### Example 2: Complete Pipeline for Test Dataset
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Small test dataset: 1 week
@@ -67,23 +67,23 @@ params = {
     'terminator_fraction_threshold': 1.0
 }
 
-dct_list = mstid.run_helper.create_music_run_list(**params)
+dct_list = darntids.run_helper.create_music_run_list(**params)
 
 # Step 1-3: Generate events and interpolate
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list, process_level='rti_interp', new_list=True
 )
 
 # Step 4: FFT analysis
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list, process_level='fft'
 )
 
 # Step 5: Classification
-mstid.classify.run_mstid_classification(dct_list)
+darntids.classify.run_mstid_classification(dct_list)
 
 # Step 6: MUSIC detection (only on MSTID events)
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='music',
     category_filter={'category_manu': 'mstid'}
@@ -99,7 +99,7 @@ print("Complete pipeline finished!")
 ### Example 3: Process One Event Manually
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Define single event
@@ -108,7 +108,7 @@ sTime = datetime.datetime(2015, 6, 21, 14, 0)
 eTime = datetime.datetime(2015, 6, 21, 16, 0)
 
 # Create data object with RTI interpolation
-dataObj = mstid.more_music.create_music_obj(
+dataObj = darntids.more_music.create_music_obj(
     radar=radar,
     sTime=sTime,
     eTime=eTime,
@@ -124,7 +124,7 @@ print(f"Data object created: {dataObj}")
 print(f"Data coverage: {dataObj.metadata['orig_rti_fraction']:.2%}")
 
 # Run FFT
-dataObj_fft = mstid.more_music.run_music(
+dataObj_fft = darntids.more_music.run_music(
     radar=radar,
     sTime=sTime,
     eTime=eTime,
@@ -133,7 +133,7 @@ dataObj_fft = mstid.more_music.run_music(
 )
 
 # Run MUSIC detection
-dataObj_music = mstid.more_music.run_music(
+dataObj_music = darntids.more_music.run_music(
     radar=radar,
     sTime=sTime,
     eTime=eTime,
@@ -148,9 +148,9 @@ print(f"Signals detected: {len(dataObj_music.signals)}")
 ### Example 4: Inspect Event Data
 
 ```python
-import mstid
+import darntids
 import datetime
-from mstid import hdf5_api
+from darntids import hdf5_api
 
 # Load processed HDF5 file
 radar = 'bks'
@@ -182,7 +182,7 @@ with hdf5_api.open_hdf5(filepath, 'r') as hf:
 ### Example 5: Multi-Radar, Multi-Year Processing
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Large-scale configuration
@@ -199,11 +199,11 @@ params = {
     'terminator_fraction_threshold': 1.0
 }
 
-dct_list = mstid.run_helper.create_music_run_list(**params)
+dct_list = darntids.run_helper.create_music_run_list(**params)
 
 # Process in stages with high parallelization
 # Stage 1: RTI interpolation
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='rti_interp',
     new_list=True,
@@ -212,7 +212,7 @@ mstid.run_helper.get_events_and_run(
 )
 
 # Stage 2: FFT
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='fft',
     multiproc=True,
@@ -220,14 +220,14 @@ mstid.run_helper.get_events_and_run(
 )
 
 # Stage 3: Classification
-mstid.classify.run_mstid_classification(
+darntids.classify.run_mstid_classification(
     dct_list,
     multiproc=True,
     nprocs=10
 )
 
 # Stage 4: MUSIC (only on MSTID events to save time)
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='music',
     category_filter={'category_manu': 'mstid'},
@@ -241,7 +241,7 @@ print(f"Multi-year, multi-radar processing complete!")
 ### Example 6: Process Specific Radars Sequentially
 
 ```python
-import mstid
+import darntids
 import datetime
 
 radars = ['bks', 'wal', 'fhw', 'cve']
@@ -262,11 +262,11 @@ for radar in radars:
         'rti_fraction_threshold': 0.25
     }
 
-    dct_list = mstid.run_helper.create_music_run_list(**params)
+    dct_list = darntids.run_helper.create_music_run_list(**params)
 
     # Full pipeline
     for level in ['rti_interp', 'fft']:
-        mstid.run_helper.get_events_and_run(
+        darntids.run_helper.get_events_and_run(
             dct_list,
             process_level=level,
             new_list=(level == 'rti_interp'),
@@ -275,10 +275,10 @@ for radar in radars:
         )
 
     # Classification
-    mstid.classify.run_mstid_classification(dct_list)
+    darntids.classify.run_mstid_classification(dct_list)
 
     # MUSIC on classified events
-    mstid.run_helper.get_events_and_run(
+    darntids.run_helper.get_events_and_run(
         dct_list,
         process_level='music',
         category_filter={'category_manu': 'mstid'},
@@ -296,7 +296,7 @@ for radar in radars:
 ### Example 7: Manual Quality Filtering
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Process events
@@ -309,17 +309,17 @@ params = {
     'fitacf_dir': '/data/sd-data'
 }
 
-dct_list = mstid.run_helper.create_music_run_list(**params)
+dct_list = darntids.run_helper.create_music_run_list(**params)
 
 # Generate event list
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='rti_interp',
     new_list=True
 )
 
 # Apply strict quality filter
-mstid.classify.classify_none_events(
+darntids.classify.classify_none_events(
     mstid_list='guc_bks_20150601_20150630',
     db_name='mstid_june2015',
     rti_fraction_threshold=0.675,  # Strict: 67.5%
@@ -327,7 +327,7 @@ mstid.classify.classify_none_events(
 )
 
 # Check results
-from mstid.mongo_tools import events_from_mongo
+from darntids.mongo_tools import events_from_mongo
 
 events = events_from_mongo(
     db_name='mstid_june2015',
@@ -341,8 +341,8 @@ print(f"Good quality events: {len(events)}")
 ### Example 8: Custom Classification Query
 
 ```python
-import mstid
-from mstid.mongo_tools import events_from_mongo
+import darntids
+from darntids.mongo_tools import events_from_mongo
 
 # Query MongoDB for specific criteria
 events = events_from_mongo(
@@ -372,7 +372,7 @@ for event in events[:10]:  # Top 10
 ### Example 9: Generate Calendar Plots
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Configuration
@@ -384,10 +384,10 @@ params = {
     'data_path': 'data/mstid_2015'
 }
 
-dct_list = mstid.run_helper.create_music_run_list(**params)
+dct_list = darntids.run_helper.create_music_run_list(**params)
 
 # Generate calendar plots
-mstid.calendar_plot(
+darntids.calendar_plot(
     dct_list,
     db_name='mstid_2015',
     output_dir='calendars/2015',
@@ -400,9 +400,9 @@ print("Calendar plots saved to calendars/2015/")
 ### Example 10: Plot Single Event RTI
 
 ```python
-import mstid
+import darntids
 import datetime
-from mstid import music_support
+from darntids import music_support
 
 # Load processed event
 radar = 'bks'
@@ -429,7 +429,7 @@ print("RTI plot saved!")
 ### Example 11: Custom Parameter File
 
 ```python
-import mstid
+import darntids
 import datetime
 import json
 
@@ -455,7 +455,7 @@ with open(json_path, 'w') as f:
     json.dump(custom_params, f, indent=2, default=str)
 
 # Process using parameter file
-mstid.more_music.run_music_init_param_file(
+darntids.more_music.run_music_init_param_file(
     json_path,
     process_level='music',
     data_path='custom_analysis'
@@ -465,7 +465,7 @@ mstid.more_music.run_music_init_param_file(
 ### Example 12: Analyze Multi-Radar Event
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Same event time for multiple radars
@@ -478,7 +478,7 @@ results = {}
 for radar in radars:
     print(f"Processing {radar}...")
 
-    dataObj = mstid.more_music.run_music(
+    dataObj = darntids.more_music.run_music(
         radar=radar,
         sTime=sTime,
         eTime=eTime,
@@ -509,8 +509,8 @@ for radar, data in results.items():
 ### Example 13: Export Results to CSV
 
 ```python
-import mstid
-from mstid.mongo_tools import events_from_mongo
+import darntids
+from darntids.mongo_tools import events_from_mongo
 import pandas as pd
 
 # Query MSTID events
@@ -545,7 +545,7 @@ print(f"Exported {len(df_export)} events to mstid_events_2015.csv")
 ### Example 14: Check Data Availability
 
 ```python
-import mstid
+import darntids
 import datetime
 import os
 
@@ -566,7 +566,7 @@ else:
 ### Example 15: Debug Single Event Failure
 
 ```python
-import mstid
+import darntids
 import datetime
 import logging
 
@@ -574,7 +574,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 try:
-    dataObj = mstid.more_music.create_music_obj(
+    dataObj = darntids.more_music.create_music_obj(
         radar='bks',
         sTime=datetime.datetime(2015, 6, 21, 14, 0),
         eTime=datetime.datetime(2015, 6, 21, 16, 0),

@@ -151,8 +151,8 @@ import numpy as np
 import pandas as pd
 
 # Local imports
-import mstid
-from mstid.mongo_tools import generate_mongo_list
+import darntids
+from darntids.mongo_tools import generate_mongo_list
 ```
 
 ### Documentation
@@ -192,9 +192,9 @@ def run_music(radar, sTime, eTime, process_level='music', **kwargs):
 
     Examples
     --------
-    >>> import mstid
+    >>> import darntids
     >>> import datetime
-    >>> dataObj = mstid.run_music(
+    >>> dataObj = darntids.run_music(
     ...     radar='bks',
     ...     sTime=datetime.datetime(2015, 1, 1, 14, 0),
     ...     eTime=datetime.datetime(2015, 1, 1, 16, 0),
@@ -234,7 +234,7 @@ Create tests in `tests/` directory:
 # tests/test_mongo_tools.py
 import unittest
 import datetime
-from mstid.mongo_tools import generate_mongo_list
+from darntids.mongo_tools import generate_mongo_list
 
 class TestMongoTools(unittest.TestCase):
 

@@ -95,7 +95,7 @@ The `-e` flag installs in "editable" mode, allowing you to modify the code witho
 #### Verification
 
 ```bash
-python -c "import mstid; print('DARNtids installed successfully!')"
+python -c "import darntids; print('DARNtids installed successfully!')"
 ```
 
 ---
@@ -135,7 +135,7 @@ This will automatically install all dependencies from `pyproject.toml`.
 #### Verification
 
 ```bash
-python -c "import mstid; print('DARNtids installed successfully!')"
+python -c "import darntids; print('DARNtids installed successfully!')"
 ```
 
 ---
@@ -206,7 +206,7 @@ For cluster or remote server:
 
 ```python
 # In your Python code
-from mstid.mongo_tools import setup_mongo_connection
+from darntids.mongo_tools import setup_mongo_connection
 
 # SSH tunnel to remote server
 connection = setup_mongo_connection(
@@ -284,11 +284,11 @@ mkdir -p test_data/bks/2015
 Create a test script `test_install.py`:
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Test imports
-from mstid import run_helper, mongo_tools, classify, more_music
+from darntids import run_helper, mongo_tools, classify, more_music
 
 print("✓ All modules imported successfully")
 
@@ -441,7 +441,7 @@ pip install -e .
 git log --oneline -10
 
 # Check current version
-python -c "import mstid; print(mstid.__version__)"
+python -c "import darntids; print(darntids.__version__)"
 ```
 
 ---

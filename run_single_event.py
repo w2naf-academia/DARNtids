@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 import logging
-import mstid
+import darntids
 
 logger = logging.getLogger()
 class LogFilter(logging.Filter):
@@ -37,7 +37,7 @@ with open(log_path,'w') as fl:
 logging.basicConfig(filename=log_path, encoding='utf-8', level=logging.WARN)
 
 # Run MSTID/MUSIC processing.
-mstid.run_music_init_param_file(init_param_file)
+darntids.run_music_init_param_file(init_param_file)
 
 # Delete log file if no real messages.
 with open(log_path,'r') as fl:

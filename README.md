@@ -4,8 +4,9 @@
 
 A Python package for detecting and characterizing Medium-Scale Traveling Ionospheric Disturbances (MSTIDs) using data from the SuperDARN (Super Dual Auroral Radar Network) global network of coherent scatter radars.
 
+[![PyPI version](https://badge.fury.io/py/darntids.svg)](https://badge.fury.io/py/darntids)
 [![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0-green.svg)](LICENSE)
 
 ## Project History
 
@@ -75,7 +76,7 @@ cd DARNtids
 2. Create and activate the conda environment:
 ```bash
 conda env create -f environment.yml
-conda activate mstid
+conda activate darntids
 ```
 
 3. Install the package in editable mode:
@@ -107,7 +108,7 @@ pip install -e .
 ### Basic Usage
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Define processing parameters
@@ -122,10 +123,10 @@ params = {
 }
 
 # Create run configuration
-run_list = mstid.run_helper.create_music_run_list(**params)
+run_list = darntids.run_helper.create_music_run_list(**params)
 
 # Generate event lists and process
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     run_list,
     process_level='rti_interp',
     new_list=True,
@@ -160,7 +161,7 @@ See [docs/pipeline.md](docs/pipeline.md) for detailed workflow documentation.
 
 ```
 DARNtids/
-├── mstid/                    # Main package
+├── darntids/                 # Main package
 │   ├── more_music.py         # MUSIC processing core
 │   ├── classify.py           # Event classification
 │   ├── mongo_tools.py        # Database operations
@@ -232,7 +233,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 git clone https://github.com/w2naf-academia/DARNtids.git
 cd DARNtids
 conda env create -f environment.yml
-conda activate mstid
+conda activate darntids
 pip install -e .[dev]
 ```
 

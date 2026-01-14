@@ -15,7 +15,7 @@ FFT Analysis → Classification → MUSIC Detection → Visualization
 
 **Purpose**: Create a database of 2-hour event windows covering the analysis period.
 
-**Function**: `mstid.mongo_tools.generate_mongo_list()`
+**Function**: `darntids.mongo_tools.generate_mongo_list()`
 
 **Process**:
 1. Define date range and radar(s)
@@ -33,10 +33,10 @@ FFT Analysis → Classification → MUSIC Detection → Visualization
 
 **Example**:
 ```python
-import mstid
+import darntids
 import datetime
 
-mstid.mongo_tools.generate_mongo_list(
+darntids.mongo_tools.generate_mongo_list(
     radar='bks',
     sDate=datetime.datetime(2015, 1, 1),
     eDate=datetime.datetime(2015, 12, 31),
@@ -54,7 +54,7 @@ mstid.mongo_tools.generate_mongo_list(
 
 **Purpose**: Remove events with insufficient data or poor quality.
 
-**Function**: `mstid.classify.classify_none_events()`
+**Function**: `darntids.classify.classify_none_events()`
 
 **Quality Checks**:
 1. **Data Availability**: Check if fitacf files exist
@@ -84,7 +84,7 @@ mstid.mongo_tools.generate_mongo_list(
 
 **Example**:
 ```python
-mstid.classify.classify_none_events(
+darntids.classify.classify_none_events(
     mstid_list='guc_bks_20150101_20151231',
     db_name='mstid_2015',
     rti_fraction_threshold=0.25,
@@ -100,7 +100,7 @@ mstid.classify.classify_none_events(
 
 **Purpose**: Create uniformly gridded radar data suitable for spectral analysis.
 
-**Function**: `mstid.more_music.run_music()` with `process_level='rti_interp'`
+**Function**: `darntids.more_music.run_music()` with `process_level='rti_interp'`
 
 **Process**:
 1. **Load Raw Data**: Read fitacf files using pydarn
@@ -131,7 +131,7 @@ mstid.classify.classify_none_events(
 
 **Example**:
 ```python
-mstid.more_music.run_music(
+darntids.more_music.run_music(
     radar='bks',
     sTime=datetime.datetime(2015, 1, 1, 14, 0),
     eTime=datetime.datetime(2015, 1, 1, 16, 0),
@@ -149,7 +149,7 @@ mstid.more_music.run_music(
 
 **Purpose**: Compute frequency spectrum to enable spectral classification.
 
-**Function**: `mstid.more_music.run_music()` with `process_level='fft'`
+**Function**: `darntids.more_music.run_music()` with `process_level='fft'`
 
 **Process**:
 1. **Load RTI Data**: Read HDF5 from Stage 3
@@ -168,7 +168,7 @@ mstid.more_music.run_music(
 
 **Example**:
 ```python
-mstid.more_music.run_music(
+darntids.more_music.run_music(
     radar='bks',
     sTime=datetime.datetime(2015, 1, 1, 14, 0),
     eTime=datetime.datetime(2015, 1, 1, 16, 0),
@@ -183,7 +183,7 @@ mstid.more_music.run_music(
 
 **Purpose**: Distinguish MSTID events from quiet periods based on spectral power.
 
-**Function**: `mstid.classify.run_mstid_classification()`
+**Function**: `darntids.classify.run_mstid_classification()`
 
 **Process**:
 1. **Load FFT Results**: Read integrated PSD metrics from MongoDB
@@ -203,7 +203,7 @@ mstid.more_music.run_music(
 
 **Example**:
 ```python
-mstid.classify.run_mstid_classification(
+darntids.classify.run_mstid_classification(
     dct_list,
     db_name='mstid_2015',
     output_dir='output/classify',
@@ -220,7 +220,7 @@ mstid.classify.run_mstid_classification(
 
 **Purpose**: Extract wave properties (wavelength, frequency, velocity, azimuth) using the MUSIC algorithm.
 
-**Function**: `mstid.more_music.run_music()` with `process_level='music'`
+**Function**: `darntids.more_music.run_music()` with `process_level='music'`
 
 **MUSIC Algorithm Steps**:
 
@@ -264,7 +264,7 @@ mstid.classify.run_mstid_classification(
 
 **Example**:
 ```python
-mstid.more_music.run_music(
+darntids.more_music.run_music(
     radar='bks',
     sTime=datetime.datetime(2015, 1, 1, 14, 0),
     eTime=datetime.datetime(2015, 1, 1, 16, 0),
@@ -281,7 +281,7 @@ mstid.more_music.run_music(
 
 ### Calendar Plots
 
-**Function**: `mstid.calendar_plot()`
+**Function**: `darntids.calendar_plot()`
 
 Creates seasonal heatmap calendars showing:
 - MSTID occurrence frequency by day-of-year and hour-of-day
@@ -290,7 +290,7 @@ Creates seasonal heatmap calendars showing:
 
 **Example**:
 ```python
-mstid.calendar_plot(
+darntids.calendar_plot(
     dct_list,
     db_name='mstid_2015',
     output_dir='calendar_output'
@@ -299,7 +299,7 @@ mstid.calendar_plot(
 
 ### RTI Plots
 
-**Function**: `mstid.music_support.plot_music_rti()`
+**Function**: `darntids.music_support.plot_music_rti()`
 
 Generates Range-Time-Intensity plots with:
 - Original radar backscatter
@@ -320,7 +320,7 @@ Additional analysis tools in `webserver/`:
 ## Complete Pipeline Example
 
 ```python
-import mstid
+import darntids
 import datetime
 
 # Configuration
@@ -338,10 +338,10 @@ params = {
 }
 
 # Create run list
-dct_list = mstid.run_helper.create_music_run_list(**params)
+dct_list = darntids.run_helper.create_music_run_list(**params)
 
 # Stage 1-2: Generate and filter events
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='rti_interp',
     new_list=True,
@@ -352,7 +352,7 @@ mstid.run_helper.get_events_and_run(
 # Stage 3: RTI interpolation (already done above)
 
 # Stage 4: FFT analysis
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='fft',
     multiproc=True,
@@ -360,14 +360,14 @@ mstid.run_helper.get_events_and_run(
 )
 
 # Stage 5: Spectral classification
-mstid.classify.run_mstid_classification(
+darntids.classify.run_mstid_classification(
     dct_list,
     multiproc=True,
     nprocs=5
 )
 
 # Stage 6: MUSIC detection (only on classified MSTID events)
-mstid.run_helper.get_events_and_run(
+darntids.run_helper.get_events_and_run(
     dct_list,
     process_level='music',
     category_filter={'category_manu': 'mstid'},
@@ -376,7 +376,7 @@ mstid.run_helper.get_events_and_run(
 )
 
 # Stage 7: Visualization
-mstid.calendar_plot(dct_list, output_dir='calendars')
+darntids.calendar_plot(dct_list, output_dir='calendars')
 ```
 
 ---

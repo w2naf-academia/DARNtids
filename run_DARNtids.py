@@ -9,8 +9,8 @@ matplotlib.use('Agg')
 
 import multiprocessing
 
-import mstid
-from mstid import run_helper
+import darntids
+from darntids import run_helper
 
 years = list(range(2015,2017))
 #years = [2015]
@@ -70,7 +70,7 @@ radars.append('pyk')
 db_name                     = 'mstid_GSMR_fitexfilter_HDF5_fig3'
 base_dir                    = os.path.join('mstid_data',db_name)
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
-#tunnel,mongo_port           = mstid.createTunnel() 
+#tunnel,mongo_port           = darntids.createTunnel() 
 
 for year in years:
     dct                             = {}
@@ -123,7 +123,7 @@ for year in years:
         # Reload RTI Data into MongoDb. ################################################
         if reupdate_db:
             for dct in dct_list:
-                mstid.updateDb_mstid_list(multiproc=multiproc,nprocs=nprocs,**dct)
+                darntids.updateDb_mstid_list(multiproc=multiproc,nprocs=nprocs,**dct)
 
         for dct in dct_list:
             # Determine if each event is good or bad based on:
@@ -136,24 +136,24 @@ for year in years:
             #       (Default requires minimum 67.5% data coverage.)
             #   4. The percentage of daylight in the data window.
             #       (Default requires 100% daylight in the data window.)
-            mstid.classify.classify_none_events(**dct) 
+            darntids.classify.classify_none_events(**dct) 
 
             # Generate a web page and copy select figures into new directory to make it easier
             # to evaluate data and see if classification algorithm is working.
-            mstid.classify.rcgb(classification_path=classification_path,**dct)
+            darntids.classify.rcgb(classification_path=classification_path,**dct)
 
         # Run FFT Level processing on unclassified events.
         run_helper.get_events_and_run(dct_list,process_level='fft',category='unclassified',
                 multiproc=multiproc,nprocs=nprocs)
 
         # Now run the real MSTID classification.
-        mstid.classify.run_mstid_classification(dct_list,classification_path=classification_path,
+        darntids.classify.run_mstid_classification(dct_list,classification_path=classification_path,
                 multiproc=multiproc,nprocs=5)
         print("----------- DCT LIST ---------")
         print(dct_list)
         print('Plotting calendar plot...')
         calendar_output_dir = os.path.join(base_dir,'calendar')
-        mstid.calendar_plot(dct_list,db_name=db_name,output_dir=calendar_output_dir)
+        darntids.calendar_plot(dct_list,db_name=db_name,output_dir=calendar_output_dir)
 
     # Run actual MUSIC Processing ##################################################
     if music_process:
@@ -172,7 +172,7 @@ for year in years:
 
         if music_reupdate_db:
             for dct in dct_list:
-                mstid.updateDb_mstid_list(multiproc=multiproc,nprocs=nprocs,**dct)
+                darntids.updateDb_mstid_list(multiproc=multiproc,nprocs=nprocs,**dct)
 
 #tunnel.kill()
 print("I'm done!")

@@ -22,7 +22,7 @@ import multiprocessing
 import pyDARNmusic
 from pyDARNmusic import music
 
-from mstid import mongo_tools
+from darntids import mongo_tools
 from .general_lib import prepare_output_dirs
 
 class NumpyEncoder(json.JSONEncoder):

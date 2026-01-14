@@ -28,7 +28,7 @@ from matplotlib.figure import Figure
 
 # from davitpy import pydarn
 from pyDARNmusic import musicRTP,checkDataQuality, stringify_signal_list,add_signal,del_signal
-from mstid.more_music import *
+from darntids.more_music import *
 #Confuguration
 DEBUG = True
 SECRET_KEY = 'HJJDnaoiwer&*(@#%@sdanbiuas@HEIu'
@@ -49,12 +49,12 @@ db            = mongo.mstid
 
 app.config.from_envvar('FLASKR_SETTINGS',silent=True)
 
-from mstid.stats_support import *
+from darntids.stats_support import *
 
 # import manual_support as mans
-import mstid.music_support as msc
-from mstid import mongo_tools
-from mstid import more_music as mm
+import darntids.music_support as msc
+from darntids import mongo_tools
+from darntids import more_music as mm
 #HOMEPAGE Starts
 # Works
 @app.route('/')

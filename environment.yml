@@ -1,4 +1,4 @@
-name: mstid
+name: darntids
 channels:
   - conda-forge
   - defaults
@@ -12,3 +12,4 @@ dependencies:
   - pip:
     - sshtunnel
     - sh
+    - pyDARNmusic

@@ -133,8 +133,13 @@ dmypy.json
 init_params/
 mstid_data.old/
 mstid_data/
+darntids_data/
+
+# PyPI upload
+.twine
 
 *~
 output/
 mstid_data
 mstid_index
+darntids_data

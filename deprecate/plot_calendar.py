@@ -9,8 +9,8 @@ matplotlib.use('Agg')
 
 import multiprocessing
 
-import mstid
-from mstid import run_helper
+import darntids
+from darntids import run_helper
 
 # User-Defined Run Parameters Go Here. #########################################
 radars = []
@@ -28,7 +28,7 @@ radars.append('gbr')
 
 db_name                     = 'mstid'
 # Used for creating an SSH tunnel when running the MSTID database on a remote machine.
-#tunnel,mongo_port           = mstid.createTunnel() 
+#tunnel,mongo_port           = darntids.createTunnel() 
 
 dct                         = {}
 dct['radars']               = radars
@@ -44,9 +44,9 @@ dct['data_path']            = 'mstid_data/mstid_index'
 dct_list                    = run_helper.create_music_run_list(**dct)
 
 
-group_dict  = mstid.run_helper.create_default_radar_groups_all_years()
+group_dict  = darntids.run_helper.create_default_radar_groups_all_years()
 
-#mstid.calendar_plot(dct_list,db_name=db_name)
-png_path    = mstid.calendar_plot_lib.plot_mstid_index(sDate=dct['list_sDate'],eDate=dct['list_eDate'],driver=['mstid_reduced_index'],group_dict=group_dict,
+#darntids.calendar_plot(dct_list,db_name=db_name)
+png_path    = darntids.calendar_plot_lib.plot_mstid_index(sDate=dct['list_sDate'],eDate=dct['list_eDate'],driver=['mstid_reduced_index'],group_dict=group_dict,
         paper_legend=False,plot_letters=True,file_suffix='_mstid_index',dct_list=dct_list)
 print(png_path)
