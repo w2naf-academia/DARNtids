@@ -64,3 +64,8 @@ Issues = "https://github.com/w2naf/DARNtids/issues"
 
 [tool.setuptools]
 packages = ["darntids"]
+# hdf5_api is a top-level library module (the MUSIC HDF5 reader). It is not part of
+# the darntids package directory, so it was previously only importable by putting the
+# repo root on sys.path. Declaring it here installs it as an importable module, so
+# `import hdf5_api` works after a normal install (no sys.path manipulation).
+py-modules = ["hdf5_api"]
