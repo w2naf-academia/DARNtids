@@ -4,12 +4,58 @@ This document describes the complete data processing pipeline for MSTID detectio
 
 ## Overview
 
-The DARNtids pipeline consists of 7 main stages that transform raw SuperDARN radar data into classified MSTID events with extracted wave properties:
+The DARNtids pipeline consists of 7 main stages that transform SuperDARN radar data into
+classified MSTID events with extracted wave properties. These are preceded by a prerequisite
+despeckle (Stage 0) that happens **outside** DARNtids:
 
 ```
-Raw fitacf data → Event Lists → Quality Filter → Data Interpolation →
+Raw fitacf data
+      ↓  [Stage 0: fitexfilter despeckle — separate upstream binary, not Python]
+Despeckled fitacf → Event Lists → Quality Filter → Data Interpolation →
 FFT Analysis → Classification → MUSIC Detection → Visualization
 ```
+
+---
+
+## Stage 0: Upstream Despeckle (prerequisite)
+
+**Purpose**: Remove salt-and-pepper speckle from raw fitacf before any DARNtids processing.
+
+**Not performed by DARNtids.** This stage is run by the compiled `fitexfilter` binary
+(A. J. Ribeiro), which wraps the RST library routine `FilterRadarScan` (R. J. Barnes).
+DARNtids contains no in-Python despeckle: it reads whatever files `fitacf_dir` points at
+and assumes any desired filtering has already been applied.
+
+**Batch driver**: [`fitexfilter.py`](../fitexfilter.py) — its `despeckle()` function pipes
+every `*.fitacf.bz2` file through `bzcat raw | fitexfilter | bzip2`, with no options, so all
+`fitexfilter` defaults apply:
+
+- **3×3×3 boxcar** median filter in (time × beam × range).
+- **Threshold 0.4** — a range-beam cell survives only if the weighted fraction of its up to
+  27 space-time neighbors containing valid scatter is ≥ 0.4. Surviving cells take the
+  **median** velocity, power, and spectral width of the contributing cells.
+- **Camping beams combined** (the default; `nocomb` would apply a 3×1×3 filter to camping
+  beams instead).
+- **Ground-scatter flag recomputed** from the filtered medians. This matters here: the
+  pipeline selects ground scatter (`fovModel='GS'`, `gscat=1`), so the `gflg` the MSTID
+  index depends on is set at this stage, not by any downstream Python.
+
+**Input**: raw fitacf, conventionally `/data/sd-data`
+**Output**: despeckled fitacf, conventionally `/data/sd-data_fitexfilter` — this is what
+`fitacf_dir` should point at (see [configuration.md](configuration.md#fitacf_dir)).
+
+**Example**:
+```bash
+python fitexfilter.py    # batch-despeckles into /data/sd-data_fitexfilter
+```
+
+**Citation**: cite Ruohoniemi and Baker (1998) for the boxcar filter, following
+Ribeiro et al. (2011), which describes this exact processing.
+
+> **Note**: `fitexfilter` performs no FITEX2 fitting despite its name — it is a median
+> despeckle only.
+
+---
 
 ## Stage 1: Event List Generation
 

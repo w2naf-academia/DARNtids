@@ -524,7 +524,18 @@ def run_music(radar,sTime,eTime,
         For MSTID Index Calculation, set to None.
         For MUSIC Calculation, set to 500 km to get past FOV distortion.
     """
-    
+
+    # Fail loudly on the `boxcar_filter` option removed in darntids 0.2.0. Without this
+    # check the **kwargs catch-all would silently swallow it, and a configuration that
+    # asked for despeckling would quietly run without any, producing a plausible-looking
+    # but differently-filtered MSTID index.
+    if 'boxcar_filter' in kwargs:
+        raise TypeError(
+            "run_music() no longer accepts 'boxcar_filter' (removed in darntids 0.2.0). "
+            "Salt-and-pepper despeckling is performed upstream by the `fitexfilter` binary "
+            "before this pipeline reads the fitacf; remove this key from your configuration "
+            "and point `fitacf_dir` at the despeckled tree. See docs/pipeline.md, Stage 0.")
+
     print(datetime.datetime.now(), 'Processing: ', radar, sTime)
 
     process_level   = ProcessLevel(str(process_level))

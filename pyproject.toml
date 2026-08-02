@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "darntids"
-version = "0.1.0"
+version = "0.2.0"
 description = "SuperDARN Traveling Ionospheric Disturbance Analysis Toolkit"
 authors = [
     {name = "Nathaniel A. Frissell", email = "nathaniel.frissell@scranton.edu"}
@@ -57,10 +57,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/w2naf/DARNtids"
-Documentation = "https://github.com/w2naf/DARNtids#readme"
-Repository = "https://github.com/w2naf/DARNtids.git"
-Issues = "https://github.com/w2naf/DARNtids/issues"
+Homepage = "https://github.com/w2naf-academia/DARNtids"
+Documentation = "https://github.com/w2naf-academia/DARNtids#readme"
+Repository = "https://github.com/w2naf-academia/DARNtids.git"
+Issues = "https://github.com/w2naf-academia/DARNtids/issues"
 
 [tool.setuptools]
 packages = ["darntids"]

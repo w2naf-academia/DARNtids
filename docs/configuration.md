@@ -82,9 +82,19 @@ This document provides detailed descriptions of all configuration parameters use
 
 #### `fitacf_dir`
 - **Type**: `str`
-- **Description**: Directory containing raw SuperDARN fitacf files
-- **Example**: `'/data/sd-data'` or `'/data/sd-data_fitexfilter'`
+- **Description**: Directory containing the SuperDARN fitacf files to process
+- **Example**: `'/data/sd-data_fitexfilter'` (despeckled) or `'/data/sd-data'` (unfiltered)
 - **Note**: Requires proper directory structure: `[radar]/[year]/`
+- **Important**: DARNtids performs **no despeckling of its own**. Salt-and-pepper
+  (speckle) removal is a prerequisite step applied upstream by the `fitexfilter` binary,
+  which writes its output to a separate directory tree — conventionally
+  `/data/sd-data_fitexfilter`. Point `fitacf_dir` at that despeckled tree unless you
+  deliberately want unfiltered data. See
+  [Stage 0 of the pipeline documentation](pipeline.md#stage-0-upstream-despeckle-prerequisite).
+- **Reproducibility**: The published MSTID index was computed from despeckled fitacf.
+  Running the same configuration against `/data/sd-data` will not reproduce it — the
+  despeckle changes both the surviving range-beam cells and their ground-scatter flags,
+  and this pipeline selects ground scatter (`fovModel='GS'`, `gscat=1`).
 
 #### `output_dir`
 - **Type**: `str`
@@ -428,7 +438,7 @@ config = {
     'list_eDate': datetime.datetime(2015, 12, 31),
     'db_name': 'mstid_bks_2015_strict',
     'data_path': 'data/bks_2015',
-    'fitacf_dir': '/data/sd-data',
+    'fitacf_dir': '/data/sd-data_fitexfilter',
     'fovModel': 'GS',
     'gscat': 1,
     'rti_fraction_threshold': 0.675,

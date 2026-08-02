@@ -139,6 +139,8 @@ darntids.run_helper.get_events_and_run(
 
 The complete analysis workflow consists of several stages:
 
+0. **Despeckle** (*prerequisite, not performed by DARNtids*): Raw fitacf are median-filtered
+   upstream by the `fitexfilter` binary; point `fitacf_dir` at that output
 1. **Event List Generation**: Create 2-hour event windows
 2. **Quality Filtering**: Remove events with insufficient data or radar downtime
 3. **Data Interpolation**: Create uniform grids from raw radar data (`rti_interp` level)
