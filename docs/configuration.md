@@ -156,8 +156,11 @@ This document provides detailed descriptions of all configuration parameters use
 - **Type**: `bool`
 - **Default**: `False`
 - **Description**: Apply Hanning window taper in beam-gate dimensions
-- **Purpose**: Reduce edge effects in spatial domain
-- **Recommendation**: Enable for smoother spatial spectra
+- **Purpose**: Reduce edge effects in the spatial domain for the MUSIC *k*-space analysis
+- **Recommendation**: Leave **off** for MSTID-index computation — the gate taper reweights
+  cells and, combined with per-event auto-range gate selection, makes the per-window index
+  depend on event geometry. It is a MUSIC-*k*-space aid, not part of the spectral index.
+  (The MSTID climatology set this to `False`.)
 
 ---
 
@@ -180,14 +183,20 @@ This document provides detailed descriptions of all configuration parameters use
 
 #### `terminator_fraction_threshold`
 - **Type**: `float`
-- **Default**: `1.0`
+- **Default**: `0.0` (strict — the `classify_none_events` default)
 - **Range**: `0.0` to `1.0`
-- **Description**: Minimum fraction of event duration in daylight
-- **Calculation**: `daylight_minutes / total_minutes`
+- **Description**: **Maximum** fraction of the event that may be in darkness. An event is
+  **rejected** when its nighttime (terminator) fraction *exceeds* this threshold. This is a
+  ceiling on nighttime, **not** a floor on daylight — larger values are *more permissive*.
+- **Calculation**: reject if `terminator_fraction > terminator_fraction_threshold`, where
+  `terminator_fraction = nighttime_fraction` of the event window.
 - **Examples**:
-  - `1.0`: 100% daylight required (strict)
-  - `0.5`: 50% daylight acceptable (relaxed)
-- **Purpose**: MSTIDs are primarily daytime phenomena
+  - `0.0`: reject on *any* darkness → 100% daylight required (strict; the code default)
+  - `0.5`: allow up to 50% darkness
+  - `1.0`: never reject on darkness → **daylight gate effectively disabled** (all events pass)
+- **Purpose**: MSTIDs are primarily daytime phenomena. Note: the published MSTID climatology
+  set this to `1.0` (gate disabled); daytime coverage there comes from the UTC / SLT sampling,
+  not from this gate.
 
 ### Radar Operational Time
 
@@ -235,8 +244,10 @@ This document provides detailed descriptions of all configuration parameters use
 - **Type**: `float` or `None`
 - **Default**: `None` (no filtering)
 - **Units**: Frequency (Hz)
-- **Description**: High-pass filter cutoff to remove low-frequency trends
-- **Purpose**: Isolate MSTID frequencies (typically 0.25-1.0 mHz)
+- **Description**: FIR band-pass cutoff(s) to isolate the MSTID period band
+- **Purpose**: Isolate MSTID frequencies. The MSTID-index run uses a band-pass with
+  `filter_cutoff_low=0.0003 Hz` and `filter_cutoff_high=0.0012 Hz` — i.e. **0.3–1.2 mHz**
+  (periods ≈ 14–56 min).
 
 #### `filterNumtaps`
 - **Type**: `int`
