@@ -154,10 +154,13 @@ See [docs/pipeline.md](docs/pipeline.md) for detailed workflow documentation.
 ## Documentation
 
 - **[Installation Guide](docs/installation.md)**: Detailed installation instructions
-- **[Pipeline Overview](docs/pipeline.md)**: Data processing workflow
-- **[API Reference](docs/api.md)**: Module and function documentation
+- **[Pipeline Overview](docs/pipeline.md)**: Data processing workflow, including the
+  upstream `fitexfilter` despeckle prerequisite (Stage 0)
 - **[Configuration Guide](docs/configuration.md)**: Parameter descriptions
 - **[Examples](docs/examples.md)**: Usage examples and tutorials
+- **[Development Instructions](docs/development_instructions/README.md)**: Development model
+  and style guidelines
+- **[Changelog](CHANGELOG.md)**: Release history and migration notes
 
 ## Project Structure
 
