@@ -110,7 +110,10 @@ darntids.mongo_tools.generate_mongo_list(
 
 **Thresholds**:
 - `rti_fraction_threshold`: Minimum data coverage (0.25 = 25% or 0.675 = 67.5%)
-- `terminator_fraction_threshold`: Maximum nighttime allowed (1.0 = no nighttime)
+- `terminator_fraction_threshold`: **Maximum** nighttime fraction allowed; an event is
+  rejected if its nighttime fraction *exceeds* this value. Larger = more permissive.
+  `0.0` = reject any darkness (100% daylight, strict — the code default); `1.0` = never reject
+  on darkness (daylight gate disabled). See [configuration.md](configuration.md#terminator_fraction_threshold).
 
 **Process**:
 1. Load each event from MongoDB
@@ -199,18 +202,21 @@ darntids.more_music.run_music(
 
 **Process**:
 1. **Load RTI Data**: Read HDF5 from Stage 3
-2. **Temporal FFT**: Compute Fast Fourier Transform along time axis
-3. **Integrated Power Spectral Density (PSD)**:
-   - Calculate PSD for each beam-gate cell
-   - Integrate over frequency bands relevant to MSTIDs (typically 0.25-1.0 mHz)
-   - Compute statistics: sum, mean, max across FOV
-4. **Save Results**: Store FFT arrays and PSD metrics to HDF5
+2. **Band-pass + window**: FIR band-pass to the MSTID band (0.0003–0.0012 Hz ≈ 14–56 min),
+   linear detrend, Hann time-window, temporal zero-pad (see `more_music.run_music()` for the
+   exact order and which steps are enabled).
+3. **Temporal FFT**: per beam-gate cell, along the time axis; store the complex spectrum
+   (normalized by the number of time samples).
+4. **Save Results**: Store FFT arrays to HDF5.
 
 **Output**:
-- HDF5 file: Updated with FFT arrays
-- Updated MongoDB:
-  - `process_level='fft'`
-  - `intpsd_sum`, `intpsd_mean`, `intpsd_max`: PSD metrics
+- HDF5 file: complex FFT spectrum per beam-gate cell
+- Updated MongoDB: `process_level='fft'`
+
+> **Note**: the MSTID **index** (`meanSubIntSpect_by_rtiCnt`) is *not* computed at this stage —
+> it is derived from these spectra during classification (Stage 5). The legacy `intpsd_sum`/
+> `intpsd_mean`/`intpsd_max` fields are **not** part of the current index and are explicitly
+> unset by the classifier.
 
 **Example**:
 ```python
@@ -227,25 +233,30 @@ darntids.more_music.run_music(
 
 ## Stage 5: Spectral Classification
 
-**Purpose**: Distinguish MSTID events from quiet periods based on spectral power.
+**Purpose**: Compute the SuperDARN **MSTID index** and split events into MSTID-active vs quiet.
 
-**Function**: `darntids.classify.run_mstid_classification()`
+**Function**: `darntids.classify.run_mstid_classification()` → `classify.load_data_dict()`,
+`sort_by_spectrum()`, `classify_mstid_events()`
 
-**Process**:
-1. **Load FFT Results**: Read integrated PSD metrics from MongoDB
-2. **Statistical Thresholding**:
-   - Compute distribution of PSD across all events
-   - Identify outliers (high power = MSTID candidates)
-   - Apply percentile-based thresholds
-3. **Classification**:
-   - `intpsd_sum > threshold`: Mark as 'mstid'
-   - `intpsd_sum ≤ threshold`: Mark as 'quiet'
-4. **Generate Spectral Plots**: Visualization of PSD distributions
-5. **Update Database**: Set `category_manu` field
+**Process** (the MSTID index — defined by Frissell et al. (2016); implemented in `classify.py`
+`load_data_dict()` / `this_actually_does_the_sorting()`):
+1. **Per-window spectrum**: integrate the **magnitude** `|FFT|` (not power/PSD) over beam and
+   gate → a per-window spectrum `S(f)`.
+2. **Seasonal-mean subtraction**: subtract the **per-radar, per-season (Nov 1–May 1) mean
+   spectrum** and integrate over positive frequencies → `meanSubIntSpect`. This makes the
+   index an **anomaly relative to each radar's own seasonal background**.
+3. **Coverage normalization**: divide by the finite-backscatter cell count →
+   **`meanSubIntSpect_by_rtiCnt`** = the MSTID index (Frissell et al., 2016).
+4. **Classify by sign**: `meanSubIntSpect_by_rtiCnt ≥ 0` → `'mstid'`; `< 0` → `'quiet'`.
 
 **Output**:
-- Updated MongoDB: `category_manu` set to 'mstid' or 'quiet'
-- PNG plots: `output/classify/[radar]_[date]_spectral.png`
+- Updated MongoDB: `meanSubIntSpect_by_rtiCnt` (and related spectral columns);
+  `category_manu` set to `'mstid'` or `'quiet'`
+- PNG plots: spectral-sort diagnostics under the classification output directory
+
+> The index is a **seasonal anomaly**, not a raw power: `0` means "typical for this radar this
+> winter," positive = more MSTID-band activity than the seasonal norm, negative = less.
+> Classification is simply the **sign** of the index — there is no PSD-percentile threshold.
 
 **Example**:
 ```python
