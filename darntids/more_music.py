@@ -496,7 +496,6 @@ def run_music(radar,sTime,eTime,
     data_path               = 'music_data/music',
     fovModel                = 'GS',
     gscat                   = 1,
-    boxcar_filter           = True,
     auto_range_on           = True,
     bad_range_km            = None,
     beam_limits             = (None, None),
@@ -585,10 +584,13 @@ def run_music(radar,sTime,eTime,
             reject_messages.append('Number of FOV gates != number of gates in data array.  Radar probably running a non-standard mode that this code is not equipped to handle.')
             good = False
 
-    if boxcar_filter and good:
-        pyDARNmusic.boxcarFilter(dataObj)
+    # NOTE: Salt-and-pepper despeckling is performed UPSTREAM by the `fitexfilter` binary
+    # (A. J. Ribeiro; RST FilterRadarScan) on the fitacf before this pipeline reads it.
+    # The former in-Python `boxcar_filter`/`pyDARNmusic.boxcarFilter` step (a crude
+    # scipy.ndimage.median_filter reimplementation, never used for the MSTID index) was
+    # removed 2026-08-02 to avoid confusion.
 
-    # Determine auto-range if called for. ########################################## 
+    # Determine auto-range if called for. ##########################################
     if auto_range_on and good:
         try:
             gate_limits = auto_range(radar,sTime,eTime,dataObj,bad_range_km=bad_range_km)
