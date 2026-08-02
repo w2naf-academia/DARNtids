@@ -88,11 +88,11 @@ for year in years:
     #dct['mongo_port']              = mongo_port
     dct['db_name']                  = db_name
     dct['data_path']                = os.path.join(base_dir,'mstid_index')
-    dct['boxcar_filter']            = False
+    # Despeckling is done upstream by the `fitexfilter` binary; no in-Python boxcar.
     dct['fitacf_dir']               = '/data/sd-data_fitexfilter'
     dct['slt_range']                     = None # Default is (6,18) # Range of local times sent to mongo_tools.generate_mongo_list()
     dct['rti_fraction_threshold']        = 0.25 # Default is 0.675 was used in Frissel et al. [2016]; 0.25 used in Frissel et al. [2025]
-    dct['terminator_fraction_threshold'] = 1.0. # Default is 0.0
+    dct['terminator_fraction_threshold'] = 1.0 # Default is 0.0
 
     # Takes dct and explodes it into run_helper function
     dct_list                        = run_helper.create_music_run_list(**dct)

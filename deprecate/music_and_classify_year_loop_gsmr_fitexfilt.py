@@ -75,7 +75,6 @@ for year in years:
     #dct['mongo_port']           = mongo_port
     dct['db_name']              = db_name
     dct['data_path']            = os.path.join(base_dir,'mstid_index')
-    dct['boxcar_filter']        = False
 #    dct['fitacf_dir']           = '/data/sd-data'
 #    dct['fitacf_dir']           = '/data/sd-data_despeck'
     dct['fitacf_dir']           = '/data/sd-data_fitexfilter'
