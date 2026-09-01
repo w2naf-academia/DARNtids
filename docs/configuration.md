@@ -84,7 +84,8 @@ This document provides detailed descriptions of all configuration parameters use
 - **Type**: `str`
 - **Description**: Directory containing the SuperDARN fitacf files to process
 - **Example**: `'/data/sd-data_fitexfilter'` (despeckled) or `'/data/sd-data'` (unfiltered)
-- **Note**: Requires proper directory structure: `[radar]/[year]/`
+- **Note**: Requires the tree to be laid out as
+  `<fitacf_dir>/<year>/<fit_sfx>/<radar>/<YYYYMMDD.HHMM>*.<fit_sfx>.bz2`
 - **Important**: DARNtids performs **no despeckling of its own**. Salt-and-pepper
   (speckle) removal is a prerequisite step applied upstream by the `fitexfilter` binary,
   which writes its output to a separate directory tree — conventionally
@@ -95,6 +96,25 @@ This document provides detailed descriptions of all configuration parameters use
   Running the same configuration against `/data/sd-data` will not reproduce it — the
   despeckle changes both the surviving range-beam cells and their ground-scatter flags,
   and this pipeline selects ground scatter (`fovModel='GS'`, `gscat=1`).
+
+#### `fit_sfx`
+- **Type**: `str`
+- **Default**: `'fitacf'`
+- **Description**: Fit-product suffix. It names both the directory level between the year
+  and the radar and the file extension the loader globs for, so `fitacf_dir` and `fit_sfx`
+  together resolve to
+  `<fitacf_dir>/<year>/<fit_sfx>/<radar>/<YYYYMMDD.HHMM>*.<fit_sfx>.bz2`.
+- **Values**: `'fitacf'` for FITACF 2.5, `'fitacf3'` for FITACF3.
+- **Despeckled trees use the same value.** A fitexfilter output named
+  `20251001.0200.00.bks.a.fitexfilter.fitacf3.bz2` under a `fitacf3` directory level still
+  matches the `*.fitacf3.bz2` glob, so switching between the raw and despeckled trees is a
+  change of `fitacf_dir` alone.
+- **Provenance**: `fitexfilter` writes `fitacf.revision.major` and `.minor` as zero and drops
+  the `algorithm` key, so a despeckled file carries no in-band record of which fit product
+  produced it. Keeping the fit version in the path and the filename is what makes a
+  despeckled tree self-describing.
+- **History**: this parameter was accepted by `create_music_obj()` but never forwarded to the
+  loader before darntids 0.2.1. Runs that set it were silently reading FITACF 2.5.
 
 #### `output_dir`
 - **Type**: `str`

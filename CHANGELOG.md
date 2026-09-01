@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). While the
 major version is `0`, breaking changes increment the **minor** version.
 
+## [Unreleased]
+
+### Added
+
+- `fit_sfx` is now a parameter of `darntids.more_music.run_music()` and is passed through
+  `create_music_obj()` to `pyDARNmusic.load_fitacf()`. It names both the directory level and
+  the file extension the loader globs for:
+  `<fitacf_dir>/<year>/<fit_sfx>/<radar>/*.<fit_sfx>.bz2`. Use `'fitacf'` for FITACF 2.5
+  (the default, and what every previous run used) and `'fitacf3'` for FITACF3.
+
+### Fixed
+
+- `create_music_obj()` accepted a `fit_sfx` argument but never forwarded it to
+  `load_fitacf()`, which then fell back to its own `'fitacf'` default. A caller that set
+  `fit_sfx` in its run dictionary was silently ignored and read the FITACF 2.5 tree. The
+  parameter now reaches the loader.
+
+  This had no effect on any published result, because every run to date used FITACF 2.5
+  and relied on a naming convention that let the despeckled tree match the `'fitacf'` glob:
+  files named `*.fitexfilter.fitacf.bz2` sitting under a `fitacf` directory level. That
+  convention still works and is unchanged. What it could not express is a second fit
+  product, which is why the parameter now has to work.
+
 ## [0.2.0] - 2026-08-02
 
 ### Removed
