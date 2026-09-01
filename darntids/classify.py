@@ -473,8 +473,62 @@ def classify_none_events(mstid_list,db_name='mstid',mongo_port=27017,
     print(('low_termin_fract: {!s}'.format(low_termin_fract)))
     mongo.close()
 
+#: Spacing (Hz) of the common frequency grid every window's spectrum is resampled onto
+#: before it is integrated. Named rather than inlined so a run's grid is inspectable.
+FREQ_GRID_STEP_HZ = 0.00005
+
+
+def common_freq_grid(f_min, f_max, step=FREQ_GRID_STEP_HZ):
+    """The frequency grid spectra are integrated on, from the extent they span.
+
+    Kept as one function so the grid has a single definition. ``f_min`` and ``f_max`` are
+    set by the data window length and the interpolation resolution, both fixed for a run,
+    so in practice this is constant across a run; it is derived rather than hard-coded
+    because those parameters are configurable.
+    """
+    f_min   = round(f_min, 4)
+    f_max   = round(f_max, 4)
+    n_steps = round((f_max - f_min) / step)
+    return np.linspace(f_min, f_max, n_steps)
+
+
+def resample_spectra(spect_df, fvec_new):
+    """Put every window's spectrum onto ``fvec_new``, interpolating in FREQUENCY.
+
+    ``spect_df`` arrives as an outer join over every loaded window's native ``freqVec``, so
+    a column carries NaN at frequencies that belong to other windows. Each column is
+    interpolated here from its OWN non-NaN points, which makes the result independent of
+    which other windows are in the list.
+
+    That independence is the point, and it used to be absent. The previous implementation
+    filled the joined frame with ``DataFrame.interpolate()``, whose default
+    ``method='linear'`` is documented as "Ignore the index and treat the values as equally
+    spaced". The joined index is a union of near-but-not-identical grids and is not equally
+    spaced, so the fill was positional rather than in frequency, and a window's integrated
+    spectrum moved when unrelated windows joined or left the list. Native ``freqVec``
+    lengths do differ across the archive (366 for most windows, about 10% at 363, with
+    occasional 354, 204 and 183), so mixed lists are the normal case. Adding a single
+    354-bin window to a six-window all-366 list shifted the others by ~0.8%. See
+    w2naf-academia/DARNtids#6.
+
+    ``np.interp`` clamps outside a window's native range, matching the forward-fill edge
+    behaviour of the previous code.
+    """
+    spect_df = spect_df.sort_index()
+    cols = {}
+    for name in spect_df.columns:
+        native = spect_df[name].dropna()
+        if native.empty:
+            # A window with no usable spectrum stays absent rather than raising out of
+            # np.interp, which rejects an empty set of sample points.
+            cols[name] = np.full(len(fvec_new), np.nan)
+            continue
+        cols[name] = np.interp(fvec_new, native.index.values, native.values)
+    return pd.DataFrame(cols, index=fvec_new, columns=spect_df.columns)
+
+
 def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_only=False,
-        test_mode=False,db_name='mstid',mongo_port=27017):
+        test_mode=False,db_name='mstid',mongo_port=27017,fvec_new=None):
     """
     This routine:
         1. Loads the spectrum and DS000_originalFit basic statistics for every event in an MSTID list.
@@ -502,6 +556,10 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
     * test_mode:    Drop to ipdb after anlyzing 5 events.  Useful for debugging/development.
     * db_name:      Mongo database to connect to.  No mongo connection is established if only using cache.
     * mongo_port:   Port mongo should connect on.
+    * fvec_new:     Frequency grid to integrate on. Defaults to the grid spanned by the
+                    windows this call loads. Pass the grid of an earlier run to place a
+                    recomputation over a different date range on the same footing as that
+                    run, which is what makes the two comparable window for window.
     """
 
     cache_name  = os.path.join(cache_dir,'classify_{}.{}.h5'.format(mstid_list,os.path.basename(data_path)))
@@ -602,21 +660,22 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
             f_ext.append(spect_df.index.min())
             f_ext.append(spect_df.index.max())
 
-        f_min       = round(np.min(f_ext),4)
-        f_max       = round(np.max(f_ext),4)
-        n_steps     = round((f_max - f_min)/0.00005)
-        fvec_new    = np.linspace(f_min,f_max,n_steps)
+        if fvec_new is None:
+            fvec_new = common_freq_grid(np.min(f_ext), np.max(f_ext))
+        else:
+            fvec_new = np.asarray(fvec_new, dtype=float)
+
+        # Carried on the returned dict so callers can record it. Spectra integrated on
+        # different grids are not comparable, and classify_mstid_events() writes this
+        # alongside the index values so a consumer can check rather than assume.
+        data_dict['fvec_new']   = fvec_new
+        data_dict['freq_grid']  = {'f_min': float(fvec_new[0]),
+                                   'f_max': float(fvec_new[-1]),
+                                   'n_steps': int(len(fvec_new))}
 
         for categ_inx,categ in enumerate(categs):
-            spect_df    = data_dict[categ]['spect_df']
-            series      = pd.Series(np.zeros_like(fvec_new),fvec_new)
-            series.name = 'tmp'
-            spect_df    = spect_df.join(series,how='outer')
-            spect_df    = spect_df.interpolate()
-            spect_df    = spect_df.reindex(fvec_new)
-            del spect_df['tmp']
-
-            data_dict[categ]['spect_df'] = spect_df
+            data_dict[categ]['spect_df'] = resample_spectra(
+                    data_dict[categ]['spect_df'], fvec_new)
 
         # Save all of that hard work to disk!
         saveMusicArrayToHDF5(data_dict, cache_name)
@@ -1098,6 +1157,13 @@ def classify_mstid_events(data_dict,threshold=0.,read_only=False):
             for info_key in info_keys:
                 val     = float(info[info_key])
                 status  = db[mstid_list].update_one({'_id':_id},{'$set':{info_key:val}})
+
+            # The frequency grid the four values above were integrated on. Recorded with
+            # them because values from different grids are not comparable, and without
+            # this a consumer combining two runs has no way to notice.
+            freq_grid = data_dict.get('freq_grid')
+            if freq_grid is not None:
+                status = db[mstid_list].update_one({'_id':_id},{'$set':{'freq_grid':freq_grid}})
 
             status  = db[mstid_list].update_one({'_id':item['_id']},{'$set': {'category_manu':categ}})
 
