@@ -38,7 +38,6 @@ import pymongo
 from .general_lib import prepare_output_dirs
 from . import more_music
 from .more_music import get_output_path
-from hdf5_api import loadMusicArrayFromHDF5, saveMusicArrayToHDF5
 
 def mstid_classification(radar,list_sDate,list_eDate,mstid_list,
         sort_key='meanSubIntSpect_by_rtiCnt',
@@ -527,7 +526,7 @@ def resample_spectra(spect_df, fvec_new):
     return pd.DataFrame(cols, index=fvec_new, columns=spect_df.columns)
 
 
-def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_only=False,
+def load_data_dict(mstid_list,data_path,
         test_mode=False,db_name='mstid',mongo_port=27017,fvec_new=None):
     """
     This routine:
@@ -535,26 +534,21 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
         2. Integrates spectra over beam and gate to give event spectra that is only a function of frequency.
         3. Interpolates all spectra to ensure every event is on an identical grid.
         4. Places all of this information into a dictionary containing pandas dataframes.
-        5. hdf5s the output into a cache file.
 
-    Note that this processing is only done on "uncategorized" events.  So, if you want to re-create
-    cache files, you should start with an unclassified MSTID list and be prepared to re-classify
-    everything afterward.
-
-    If use_cache is True and the routine can find a cached hdf5 file, that file will be loaded instead of
-    processing the data from scratch.
+    Note that this processing is only done on "uncategorized" events.  So, if you want to
+    re-run this, you should start with an unclassified MSTID list and be prepared to
+    re-classify everything afterward.
 
     Finally, one dataframe is create that contains all of the event spectra in a single place.  This is
-    created after all other processing and even cache loading.
+    created after all other processing.
+
+    Returns None, and only None, when no window in the list yielded a spectrum. A caller may
+    therefore read None as "no data in this period" without further qualification.
 
     * mstid_list:   Name of MSTID List/mongo collection
     * data_path:    Location of MUSIC dataObj hdf5 files.
-    * use_cache:    Try loading results of a previous run of this routine stored in hdf5 files.
-    * cache_dir:    Where the cached hdf5 files are located.
-    * read_only:    Safety switch to prevent overwriteing of files.  Useful when you don't want to 
-                    fiddle with the cache.
     * test_mode:    Drop to ipdb after anlyzing 5 events.  Useful for debugging/development.
-    * db_name:      Mongo database to connect to.  No mongo connection is established if only using cache.
+    * db_name:      Mongo database to connect to.
     * mongo_port:   Port mongo should connect on.
     * fvec_new:     Frequency grid to integrate on. Defaults to the grid spanned by the
                     windows this call loads. Pass the grid of an earlier run to place a
@@ -562,127 +556,122 @@ def load_data_dict(mstid_list,data_path,use_cache=True,cache_dir='data',read_onl
                     run, which is what makes the two comparable window for window.
     """
 
-    cache_name  = os.path.join(cache_dir,'classify_{}.{}.h5'.format(mstid_list,os.path.basename(data_path)))
+    mongo       = pymongo.MongoClient(port=mongo_port)
+    db          = mongo[db_name]
 
-    if (not os.path.exists(cache_name) or not use_cache) and (not read_only):
-        mongo       = pymongo.MongoClient(port=mongo_port)
-        db          = mongo[db_name]
+    print(("MSTID Classification: Loading spectra for <{}>.".format(mstid_list)))
+    data_dict   = {'unclassified':{'color':'blue'},
+                   'mstid': {'color':'red'},
+                   'quiet': {'color':'green'}}
 
-        print(("MSTID Classification: Cache <{}> does not exist.  Creating.".format(cache_name)))
-        data_dict   = {'unclassified':{'color':'blue'},
-                       'mstid': {'color':'red'},
-                       'quiet': {'color':'green'}}
+    categs                  = ['unclassified']
 
-        categs                  = ['unclassified']
+    data_dict['categs']         = categs
+    data_dict['mstid_list']     = mstid_list
+    data_dict['db_name']        = db_name
+    data_dict['mongo_port']     = mongo_port
+    data_dict['data_path']      = data_path
 
-        data_dict['categs']         = categs
-        data_dict['mstid_list']     = mstid_list
-        data_dict['db_name']        = db_name
-        data_dict['mongo_port']     = mongo_port
-        data_dict['data_path']      = data_path
-
-        for categ in categs:
-            if categ == 'unclassified':
-                crsr        = db[mstid_list].find({'category_manu':{'$exists':False}},no_cursor_timeout=True)
-                count       = db[mstid_list].count_documents({'category_manu':{'$exists':False}})
-            else:
-                crsr        = db[mstid_list].find({'category_manu':categ},no_cursor_timeout=True)
-                count       = db[mstid_list].count_documents({'category_manu':categ})
-
-            orig_rti_inx    = []
-            orig_rti_list   = []
-
-            # Cycle through every event window in the list, collapse the spectrum in beam and gate,
-            # and append all of the spectra to a list that will become a dataframe.
-            for item_inx,item in enumerate(crsr):
-                radar       = item['radar']
-                sDatetime   = item['sDatetime']
-                fDatetime   = item['fDatetime']
-
-                print(("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,count,radar,sDatetime,fDatetime)))
-                dataObj = more_music.get_dataObj(radar,sDatetime,fDatetime,data_path=data_path)
-
-                if dataObj is None:
-                    continue
-
-                if not hasattr(dataObj.active,'spectrum'):
-                    continue
-
-                # Get basic statistics on dataObj.DS000_originalFit data using the ranges of dataObj.active.
-                orig_rti_info   = more_music.get_orig_rti_info(dataObj,sDatetime,fDatetime)
-
-                # Reduce spectrum by integrating over beam and gate leaving it only a function of frequency.
-                fvec        = dataObj.active.freqVec
-                spec        = np.abs(dataObj.active.spectrum)
-                spec        = np.nansum(spec,axis=2)
-                spec        = np.nansum(spec,axis=1)
-                
-                # Put the reduced spectrum into a pandas series object.
-                series      = pd.Series(spec,fvec)
-
-                spect_df    = data_dict[categ].get('spect_df')
-                if spect_df is None:
-                    # Append spectrum to dictionary keyed by a index.
-                    data_dict[categ]['spect_df']        = pd.DataFrame(series)
-                    orig_rti_inx.append(0)
-                    
-                    # Keep track of the radar and time of data in another dictionary
-                    # keyed by the same index.
-                    data_dict[categ]['radar_sTime_eTime']     = {}
-                    data_dict[categ]['radar_sTime_eTime'][0]  = (radar,sDatetime,fDatetime)
-                else:
-                    #Get the index for the next spectrum.
-                    series.name = max(list(spect_df.keys())) + 1
-
-                    # Append the spectrum and radar,sDatetime,fDatetime to the appropriate dictionaries.
-                    data_dict[categ]['spect_df']    = spect_df.join(series,how='outer')
-                    data_dict[categ]['radar_sTime_eTime'][series.name]  = (radar,sDatetime,fDatetime)
-                    orig_rti_inx.append(series.name)
-
-                # Save statistical infor that goes along with each data window.
-                orig_rti_list.append(orig_rti_info)
-
-                # Only run through a few event windows if we are debugging/developing.
-                if test_mode and item_inx == 5:
-                    break
-
-            # Dataframize the RTI statisical information.
-            data_dict[categ]['orig_rti_info'] = pd.DataFrame(orig_rti_list,index=orig_rti_inx)
-
-        # Fill in NaNs and put everything onto same frequency grid.
-        # All spectra are interpolated here and finally converted into a dataFrame.
-        f_ext   = []
-        for categ_inx,categ in enumerate(categs):
-            if 'spect_df' not in data_dict[categ].keys():
-                print('No spect_df found... returning...')
-                return
-            spect_df = data_dict[categ]['spect_df']
-            f_ext.append(spect_df.index.min())
-            f_ext.append(spect_df.index.max())
-
-        if fvec_new is None:
-            fvec_new = common_freq_grid(np.min(f_ext), np.max(f_ext))
+    for categ in categs:
+        if categ == 'unclassified':
+            crsr        = db[mstid_list].find({'category_manu':{'$exists':False}},no_cursor_timeout=True)
+            count       = db[mstid_list].count_documents({'category_manu':{'$exists':False}})
         else:
-            fvec_new = np.asarray(fvec_new, dtype=float)
+            crsr        = db[mstid_list].find({'category_manu':categ},no_cursor_timeout=True)
+            count       = db[mstid_list].count_documents({'category_manu':categ})
 
-        # Carried on the returned dict so callers can record it. Spectra integrated on
-        # different grids are not comparable, and classify_mstid_events() writes this
-        # alongside the index values so a consumer can check rather than assume.
-        data_dict['fvec_new']   = fvec_new
-        data_dict['freq_grid']  = {'f_min': float(fvec_new[0]),
-                                   'f_max': float(fvec_new[-1]),
-                                   'n_steps': int(len(fvec_new))}
+        orig_rti_inx    = []
+        orig_rti_list   = []
 
-        for categ_inx,categ in enumerate(categs):
-            data_dict[categ]['spect_df'] = resample_spectra(
-                    data_dict[categ]['spect_df'], fvec_new)
+        # Cycle through every event window in the list, collapse the spectrum in beam and gate,
+        # and append all of the spectra to a list that will become a dataframe.
+        for item_inx,item in enumerate(crsr):
+            radar       = item['radar']
+            sDatetime   = item['sDatetime']
+            fDatetime   = item['fDatetime']
 
-        # Save all of that hard work to disk!
-        saveMusicArrayToHDF5(data_dict, cache_name)
-        mongo.close()
+            print(("MSTID Classification: Loading dataObj ({!s}/{!s}): {!s} {!s}-{!s}".format(item_inx,count,radar,sDatetime,fDatetime)))
+            dataObj = more_music.get_dataObj(radar,sDatetime,fDatetime,data_path=data_path)
+
+            if dataObj is None:
+                continue
+
+            if not hasattr(dataObj.active,'spectrum'):
+                continue
+
+            # Get basic statistics on dataObj.DS000_originalFit data using the ranges of dataObj.active.
+            orig_rti_info   = more_music.get_orig_rti_info(dataObj,sDatetime,fDatetime)
+
+            # Reduce spectrum by integrating over beam and gate leaving it only a function of frequency.
+            fvec        = dataObj.active.freqVec
+            spec        = np.abs(dataObj.active.spectrum)
+            spec        = np.nansum(spec,axis=2)
+            spec        = np.nansum(spec,axis=1)
+            
+            # Put the reduced spectrum into a pandas series object.
+            series      = pd.Series(spec,fvec)
+
+            spect_df    = data_dict[categ].get('spect_df')
+            if spect_df is None:
+                # Append spectrum to dictionary keyed by a index.
+                data_dict[categ]['spect_df']        = pd.DataFrame(series)
+                orig_rti_inx.append(0)
+                
+                # Keep track of the radar and time of data in another dictionary
+                # keyed by the same index.
+                data_dict[categ]['radar_sTime_eTime']     = {}
+                data_dict[categ]['radar_sTime_eTime'][0]  = (radar,sDatetime,fDatetime)
+            else:
+                #Get the index for the next spectrum.
+                series.name = max(list(spect_df.keys())) + 1
+
+                # Append the spectrum and radar,sDatetime,fDatetime to the appropriate dictionaries.
+                data_dict[categ]['spect_df']    = spect_df.join(series,how='outer')
+                data_dict[categ]['radar_sTime_eTime'][series.name]  = (radar,sDatetime,fDatetime)
+                orig_rti_inx.append(series.name)
+
+            # Save statistical infor that goes along with each data window.
+            orig_rti_list.append(orig_rti_info)
+
+            # Only run through a few event windows if we are debugging/developing.
+            if test_mode and item_inx == 5:
+                break
+
+        # Dataframize the RTI statisical information.
+        data_dict[categ]['orig_rti_info'] = pd.DataFrame(orig_rti_list,index=orig_rti_inx)
+
+    # Fill in NaNs and put everything onto same frequency grid.
+    # All spectra are interpolated here and finally converted into a dataFrame.
+    f_ext   = []
+    for categ_inx,categ in enumerate(categs):
+        if 'spect_df' not in data_dict[categ].keys():
+            # The one path that returns None. Keep it that way: the caller reports None
+            # as "no data in this period", so any other reason to bail must raise.
+            print(('No window in <{}> yielded a spectrum (category "{}"). '
+                   'Returning None.').format(mstid_list,categ))
+            mongo.close()
+            return None
+        spect_df = data_dict[categ]['spect_df']
+        f_ext.append(spect_df.index.min())
+        f_ext.append(spect_df.index.max())
+
+    if fvec_new is None:
+        fvec_new = common_freq_grid(np.min(f_ext), np.max(f_ext))
     else:
-        print(("I'm using the cache! ({})".format(cache_name)))
-        data_dict = loadMusicArrayFromHDF5(cache_name)
+        fvec_new = np.asarray(fvec_new, dtype=float)
+
+    # Carried on the returned dict so callers can record it. Spectra integrated on
+    # different grids are not comparable, and classify_mstid_events() writes this
+    # alongside the index values so a consumer can check rather than assume.
+    data_dict['fvec_new']   = fvec_new
+    data_dict['freq_grid']  = {'f_min': float(fvec_new[0]),
+                               'f_max': float(fvec_new[-1]),
+                               'n_steps': int(len(fvec_new))}
+
+    for categ_inx,categ in enumerate(categs):
+        data_dict[categ]['spect_df'] = resample_spectra(
+                data_dict[categ]['spect_df'], fvec_new)
+    mongo.close()
 
     data_dict['all_spect_df'] = create_all_spect_df(data_dict)
     return data_dict

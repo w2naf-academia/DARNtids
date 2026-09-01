@@ -63,7 +63,30 @@ major version is `0`, breaking changes increment the **minor** version.
   convention still works and is unchanged. What it could not express is a second fit
   product, which is why the parameter now has to work.
 
+### Removed
+
+- **BREAKING**: the classification cache is gone from `darntids.classify.load_data_dict()`,
+  along with its `use_cache`, `cache_dir` and `read_only` parameters ([#8]). Drop those
+  keywords from any caller; passing one now raises `TypeError` rather than being ignored.
+
+  The cache never persisted anything. It wrote with `saveMusicArrayToHDF5()`, which iterates
+  `dir(obj)` and keeps only values that are dicts, lists, or named `DS*`/`active*`; for a
+  plain dict, `dir()` returns dict methods, so nothing matched and the file was written
+  empty. Nothing noticed because `classify_mstid_list.py` clears the cache directory before
+  every run, so the load branch was unreachable.
+
+  **The failure mode had it ever been reached was a quiet wrong answer.**
+  `loadMusicArrayFromHDF5()` would have returned `None`, and the caller reports `None` as
+  "No data for given time period. Spectral classification not possible." and exits
+  successfully. A season that should have been classified would have produced nothing, with
+  a message blaming the data rather than the cache.
+
+  `load_data_dict()` now returns `None` for exactly one reason: no window in the list
+  yielded a spectrum. That message names the list and category, and the caller's "no data"
+  report is now unambiguous.
+
 [#6]: https://github.com/w2naf-academia/DARNtids/issues/6
+[#8]: https://github.com/w2naf-academia/DARNtids/issues/8
 
 ## [0.2.0] - 2026-08-02
 

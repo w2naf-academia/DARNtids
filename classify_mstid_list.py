@@ -18,16 +18,16 @@ db_name                 = sys.argv[8]
 mongo_port              = int(sys.argv[9])
 
 output_dir  = os.path.join(classification_path,'results',mstid_list)
-cache_dir   = os.path.join(classification_path,'cache',mstid_list)
 
 dirs        = {}
 dirs[0]     = output_dir
-dirs[1]     = cache_dir
 darntids.prepare_output_dirs(dirs,clear_output_dirs=True)
 
-data_dict   = darntids.classify.load_data_dict(mstid_list,data_path,cache_dir=cache_dir,test_mode=False,
+data_dict   = darntids.classify.load_data_dict(mstid_list,data_path,test_mode=False,
         db_name=db_name,mongo_port=mongo_port)
 
+# load_data_dict() returns None for one reason only: no window in the list yielded a
+# spectrum. Anything else raises, so this message names a real absence of data.
 if data_dict is None:
     fout = os.path.join(output_dir,'spectrum_messages.txt')
     with open(fout,'w') as fl:
