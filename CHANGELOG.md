@@ -15,8 +15,42 @@ major version is `0`, breaking changes increment the **minor** version.
   the file extension the loader globs for:
   `<fitacf_dir>/<year>/<fit_sfx>/<radar>/*.<fit_sfx>.bz2`. Use `'fitacf'` for FITACF 2.5
   (the default, and what every previous run used) and `'fitacf3'` for FITACF3.
+- `darntids.classify.common_freq_grid()` and `resample_spectra()`, so the grid and the
+  resampling each have a single definition, plus the named constant `FREQ_GRID_STEP_HZ`
+  replacing an inlined `0.00005` ([#6]).
+- `load_data_dict(..., fvec_new=...)` accepts an explicit frequency grid. Pass an earlier
+  run's grid to place a recomputation over a different date range on the same footing as
+  that run ([#6]).
+- `classify_mstid_events()` records the grid as `freq_grid` on each MongoDB document,
+  alongside the four index values it defines, so a consumer combining two runs can check
+  comparability instead of assuming it ([#6]).
+- A `tests/` suite (`pytest`). `tests/test_classify_spectra.py` covers the grid definition
+  and the list-independence property below; three of its cases fail against the previous
+  implementation ([#6]).
 
 ### Fixed
+
+- **BEHAVIOUR CHANGE**: `darntids.classify.load_data_dict()` now interpolates each window's
+  spectrum onto the common frequency grid from that window's **own** native `freqVec`,
+  rather than from the outer join of every loaded window's grid ([#6]).
+
+  The previous implementation filled the joined frame with `DataFrame.interpolate()`, whose
+  default `method='linear'` is documented as *"Ignore the index and treat the values as
+  equally spaced"*. The joined index is a union of near-but-not-identical grids and is not
+  equally spaced, so the fill was positional rather than in frequency. The consequence was
+  that a window's `intSpect` depended on **which other windows were in the list**, which
+  meant the MSTID index could not be recomputed over a different date range from the same
+  MUSIC HDF5 files and be compared window for window against an earlier run.
+
+  Native `freqVec` lengths do vary across the archive (366 for most windows, about 10% at
+  363, with occasional 354, 204 and 183), so mixed lists are the normal case. Measured on
+  real spectra: adding a single 354-bin window to a six-window all-366 list moved the other
+  windows' `intSpect` by ~0.8% (max 1.3%); the same comparison under the fix moves them by
+  exactly zero.
+
+  **This changes computed values** by a few tenths of a percent per window. Index products
+  exported before this change are not bit-reproducible under it. Re-derive rather than mix
+  values from both sides of this change in one analysis.
 
 - `create_music_obj()` accepted a `fit_sfx` argument but never forwarded it to
   `load_fitacf()`, which then fell back to its own `'fitacf'` default. A caller that set
@@ -28,6 +62,8 @@ major version is `0`, breaking changes increment the **minor** version.
   files named `*.fitexfilter.fitacf.bz2` sitting under a `fitacf` directory level. That
   convention still works and is unchanged. What it could not express is a second fit
   product, which is why the parameter now has to work.
+
+[#6]: https://github.com/w2naf-academia/DARNtids/issues/6
 
 ## [0.2.0] - 2026-08-02
 
