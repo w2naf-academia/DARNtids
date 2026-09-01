@@ -8,6 +8,26 @@ major version is `0`, breaking changes increment the **minor** version.
 
 ## [Unreleased]
 
+### Added
+
+- `fit_sfx` is now a parameter of `darntids.more_music.run_music()` and is passed through
+  `create_music_obj()` to `pyDARNmusic.load_fitacf()`. It names both the directory level and
+  the file extension the loader globs for:
+  `<fitacf_dir>/<year>/<fit_sfx>/<radar>/*.<fit_sfx>.bz2`. Use `'fitacf'` for FITACF 2.5
+  (the default, and what every previous run used) and `'fitacf3'` for FITACF3.
+- `darntids.classify.common_freq_grid()` and `resample_spectra()`, so the grid and the
+  resampling each have a single definition, plus the named constant `FREQ_GRID_STEP_HZ`
+  replacing an inlined `0.00005` ([#6]).
+- `load_data_dict(..., fvec_new=...)` accepts an explicit frequency grid. Pass an earlier
+  run's grid to place a recomputation over a different date range on the same footing as
+  that run ([#6]).
+- `classify_mstid_events()` records the grid as `freq_grid` on each MongoDB document,
+  alongside the four index values it defines, so a consumer combining two runs can check
+  comparability instead of assuming it ([#6]).
+- A `tests/` suite (`pytest`). `tests/test_classify_spectra.py` covers the grid definition
+  and the list-independence property below; three of its cases fail against the previous
+  implementation ([#6]).
+
 ### Fixed
 
 - **BEHAVIOUR CHANGE**: `darntids.classify.load_data_dict()` now interpolates each window's
@@ -32,20 +52,16 @@ major version is `0`, breaking changes increment the **minor** version.
   exported before this change are not bit-reproducible under it. Re-derive rather than mix
   values from both sides of this change in one analysis.
 
-### Added
+- `create_music_obj()` accepted a `fit_sfx` argument but never forwarded it to
+  `load_fitacf()`, which then fell back to its own `'fitacf'` default. A caller that set
+  `fit_sfx` in its run dictionary was silently ignored and read the FITACF 2.5 tree. The
+  parameter now reaches the loader.
 
-- `darntids.classify.common_freq_grid()` and `resample_spectra()`, so the grid and the
-  resampling each have a single definition, plus the named constant `FREQ_GRID_STEP_HZ`
-  replacing an inlined `0.00005` ([#6]).
-- `load_data_dict(..., fvec_new=...)` accepts an explicit frequency grid. Pass an earlier
-  run's grid to place a recomputation over a different date range on the same footing as
-  that run ([#6]).
-- `classify_mstid_events()` records the grid as `freq_grid` on each MongoDB document,
-  alongside the four index values it defines, so a consumer combining two runs can check
-  comparability instead of assuming it ([#6]).
-- A `tests/` suite (`pytest`). `tests/test_classify_spectra.py` covers the grid definition
-  and the list-independence property above; three of its cases fail against the previous
-  implementation ([#6]).
+  This had no effect on any published result, because every run to date used FITACF 2.5
+  and relied on a naming convention that let the despeckled tree match the `'fitacf'` glob:
+  files named `*.fitexfilter.fitacf.bz2` sitting under a `fitacf` directory level. That
+  convention still works and is unchanged. What it could not express is a second fit
+  product, which is why the parameter now has to work.
 
 ### Removed
 

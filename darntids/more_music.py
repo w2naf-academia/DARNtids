@@ -217,6 +217,13 @@ def create_music_obj(radar, sTime, eTime
     """
     srcPath:    Path to Saved hdf5 Files
     fitacf_dir: Path to fitacf files
+    fit_sfx:    Fit-product suffix naming both the directory level and the file
+                extension the loader globs for, as
+                <fitacf_dir>/<year>/<fit_sfx>/<radar>/*.<fit_sfx>.bz2.
+                Use 'fitacf' for FITACF 2.5 and 'fitacf3' for FITACF3. The
+                despeckled trees follow the same convention, because a
+                fitexfilter output named *.fitexfilter.<fit_sfx>.bz2 still
+                matches the glob.
 
     * [**gscat**] (int): Ground scatter flag.
                     0: all backscatter data 
@@ -238,7 +245,7 @@ def create_music_obj(radar, sTime, eTime
 #    myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,channel=channel,cp=cp,fileType=fileType,filtered=boxCarFilter)
     if srcPath is None:
 #        myPtr   = pydarn.sdio.radDataOpen(load_sTime,radar,eTime=load_eTime,filtered=fitfilter)
-        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=fitacf_dir)
+        fitacf  = pyDARNmusic.load_fitacf(radar,load_sTime,load_eTime,data_dir=fitacf_dir,fit_sfx=fit_sfx)
     else:
         myPtr = loadMusicArrayFromHDF5(srcPath)
 
@@ -517,12 +524,22 @@ def run_music(radar,sTime,eTime,
     mongo_port              = 27017,
     srcPath                 = None,
     fitacf_dir              = '/sd-data',
+    fit_sfx                 = 'fitacf',
     **kwargs):
 
     """
     bad_range_km: Reject ranges less than this in GS Mapped Range
         For MSTID Index Calculation, set to None.
         For MUSIC Calculation, set to 500 km to get past FOV distortion.
+
+    fit_sfx: Fit-product suffix passed through to create_music_obj() and on to
+        pyDARNmusic.load_fitacf(). Defaults to 'fitacf', which is FITACF 2.5 and
+        the value every run before darntids 0.2.1 used. Set it to 'fitacf3' to
+        read a FITACF3 tree.
+
+        Before this parameter existed, load_fitacf() was called without it and
+        fell back to its own 'fitacf' default, so a caller that set fit_sfx in
+        its run dictionary was silently ignored and read the FITACF 2.5 tree.
     """
 
     # Fail loudly on the `boxcar_filter` option removed in darntids 0.2.0. Without this
@@ -557,6 +574,7 @@ def run_music(radar,sTime,eTime,
             ,fovModel                   = fovModel
             ,gscat                      = gscat
             ,fitacf_dir                 = fitacf_dir
+            ,fit_sfx                    = fit_sfx
             )
 #    except:
 #        dataObj = None
